@@ -36,6 +36,7 @@ export const Chat = memo(function Chat({ className }: Props) {
     const { chat } = useSharedChatContext();
     const { modelId, reasoningEffort } = useSettings();
     const { messages, sendMessage, status } = useChat<ChatUIMessage>({ chat });
+    const stableMessages = useStableMessages(messages);
     const { setChatStatus } = useSandboxStore();
 
     const validateAndSubmitMessage = useCallback(
@@ -115,7 +116,7 @@ export const Chat = memo(function Chat({ className }: Props) {
             </PanelHeader>
 
             {/* Messages Area */}
-            {messages.length === 0 ? (
+            {stableMessages.length === 0 ? (
                 <div className="min-h-0 flex-1">
                     <div className="text-muted-foreground flex h-full flex-col items-center justify-center font-mono text-xs">
                         <p className="mb-2 font-semibold">
@@ -139,9 +140,9 @@ export const Chat = memo(function Chat({ className }: Props) {
             ) : (
                 <Conversation className="relative w-full">
                     <ConversationContent className="space-y-4">
-                        {messages.map(message => (
+                        {stableMessages.map(message => ( (
                             <Message key={message.id} message={message} />
-                        ))}
+                        )))}
                     </ConversationContent>
                     <ConversationScrollButton />
                 </Conversation>
@@ -241,3 +242,190 @@ export const Chat = memo(function Chat({ className }: Props) {
         </Panel>
     );
 });
+
+
+function useStableMessages(messages: ChatUIMessage[]) {
+    const previousMessagesRef = useRef<Map<string, ChatUIMessage>>(new Map());
+
+    // Keep message references stable so heavy children skip renders when data is unchanged.
+    return useMemo(() => {
+        const nextMessageMap = new Map<string, ChatUIMessage>();
+
+        const stableList = messages.map(message => {
+            const previous = previousMessagesRef.current.get(message.id);
+
+            if (previous && areMessagesEqual(previous, message)) {
+                nextMessageMap.set(message.id, previous);
+                return previous;
+            }
+
+            nextMessageMap.set(message.id, message);
+            return message;
+        });
+
+        previousMessagesRef.current = nextMessageMap;
+
+        return stableList;
+    }, [messages]);
+}
+
+function areMessagesEqual(previous: ChatUIMessage, next: ChatUIMessage): boolean {
+    if (previous === next) {
+        return true;
+    }
+
+    if (previous.id !== next.id || previous.role !== next.role) {
+        return false;
+    }
+
+    if ((previous.metadata?.model ?? null) !== (next.metadata?.model ?? null)) {
+        return false;
+    }
+
+    return areMessagePartsEqual(previous.parts, next.parts);
+}
+
+function areMessagePartsEqual(
+    previousParts: ChatUIMessage['parts'],
+    nextParts: ChatUIMessage['parts']
+): boolean {
+    if (previousParts.length !== nextParts.length) {
+        return false;
+    }
+
+    for (let index = 0; index < previousParts.length; index += 1) {
+        const previousPart = previousParts[index]!;
+        const nextPart = nextParts[index]!;
+
+        if (previousPart === nextPart) {
+            continue;
+        }
+
+        if (previousPart.type !== nextPart.type) {
+            return false;
+        }
+
+        switch (previousPart.type) {
+            case 'text': {
+                if (previousPart.text !== (nextPart as typeof previousPart).text) {
+                    return false;
+                }
+                break;
+            }
+            case 'reasoning': {
+                const nextReasoning = nextPart as typeof previousPart;
+
+                if (
+                    (previousPart.text ?? '') !== (nextReasoning.text ?? '') ||
+                    previousPart.state !== nextReasoning.state
+                ) {
+                    return false;
+                }
+                break;
+            }
+            case 'data-generating-files': {
+                const prevData = previousPart.data;
+                const nextData = (nextPart as typeof previousPart).data;
+
+                if (
+                    prevData.status !== nextData.status ||
+                    !areStringArraysEqual(prevData.paths, nextData.paths) ||
+                    (prevData.error?.message ?? null) !==
+                        (nextData.error?.message ?? null)
+                ) {
+                    return false;
+                }
+                break;
+            }
+            case 'data-create-sandbox': {
+                const prevData = previousPart.data;
+                const nextData = (nextPart as typeof previousPart).data;
+
+                if (
+                    prevData.status !== nextData.status ||
+                    prevData.sandboxId !== nextData.sandboxId ||
+                    (prevData.error?.message ?? null) !==
+                        (nextData.error?.message ?? null)
+                ) {
+                    return false;
+                }
+                break;
+            }
+            case 'data-get-sandbox-url': {
+                const prevData = previousPart.data;
+                const nextData = (nextPart as typeof previousPart).data;
+
+                if (
+                    prevData.status !== nextData.status ||
+                    (prevData.url ?? null) !== (nextData.url ?? null)
+                ) {
+                    return false;
+                }
+                break;
+            }
+            case 'data-run-command': {
+                const prevData = previousPart.data;
+                const nextData = (nextPart as typeof previousPart).data;
+
+                if (
+                    prevData.status !== nextData.status ||
+                    prevData.sandboxId !== nextData.sandboxId ||
+                    (prevData.commandId ?? null) !== (nextData.commandId ?? null) ||
+                    prevData.command !== nextData.command ||
+                    !areStringArraysEqual(prevData.args, nextData.args) ||
+                    (prevData.exitCode ?? null) !== (nextData.exitCode ?? null) ||
+                    (prevData.error?.message ?? null) !==
+                        (nextData.error?.message ?? null)
+                ) {
+                    return false;
+                }
+                break;
+            }
+            case 'data-report-errors': {
+                const prevData = previousPart.data;
+                const nextData = (nextPart as typeof previousPart).data;
+
+                if (
+                    prevData.summary !== nextData.summary ||
+                    !areOptionalStringArraysEqual(prevData.paths, nextData.paths)
+                ) {
+                    return false;
+                }
+                break;
+            }
+            default:
+                return false;
+        }
+    }
+
+    return true;
+}
+
+function areStringArraysEqual(first: string[], second: string[]): boolean {
+    if (first.length !== second.length) {
+        return false;
+    }
+
+    for (let index = 0; index < first.length; index += 1) {
+        if (first[index] !== second[index]) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+function areOptionalStringArraysEqual(
+    first: string[] | undefined,
+    second: string[] | undefined
+): boolean {
+    if (!first && !second) {
+        return true;
+    }
+
+    if (!first || !second) {
+        return false;
+    }
+
+    return areStringArraysEqual(first, second);
+}
