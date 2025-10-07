@@ -1,4 +1,3 @@
-import { ToggleWelcome } from '@/components/modals/welcome'
 import { VercelDashed } from '@/components/icons/vercel-dashed'
 import { cn } from '@/lib/utils'
 
@@ -14,9 +13,6 @@ export async function Header({ className }: Props) {
         <span className="hidden md:inline text-sm uppercase font-mono font-bold tracking-tight">
           OSS Vibe Coding Platform
         </span>
-      </div>
-      <div className="flex items-center ml-auto space-x-1.5">
-        <ToggleWelcome />
       </div>
     </header>
   )
