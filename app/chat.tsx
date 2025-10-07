@@ -2,131 +2,213 @@
 
 import type { ChatUIMessage } from '@/components/chat/types'
 import { TEST_PROMPTS } from '@/ai/constants'
-import { MessageCircleIcon, SendIcon } from 'lucide-react'
+import { ImageUpIcon, MessageCircleIcon, SendIcon } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
-  Conversation,
-  ConversationContent,
-  ConversationScrollButton,
+Conversation,
+ConversationContent,
+ConversationScrollButton,
 } from '@/components/ai-elements/conversation'
-import { Input } from '@/components/ui/input'
+import { Textarea } from '@/components/ui/textarea'
 import { Message } from '@/components/chat/message'
 import { Panel, PanelHeader } from '@/components/panels/panels'
 import { Settings } from '@/components/settings/settings'
 import { useChat } from '@ai-sdk/react'
 import { useLocalStorageValue } from '@/lib/use-local-storage-value'
-import { useCallback, useEffect } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useSharedChatContext } from '@/lib/chat-context'
 import { useSettings } from '@/components/settings/use-settings'
 import { useSandboxStore } from './state'
+import { cn } from '@/lib/utils'
+
+type Attachment = { file: File; url: string }
 
 interface Props {
-  className: string
-  modelId?: string
+className: string
+modelId?: string
 }
 
 export function Chat({ className }: Props) {
-  const [input, setInput] = useLocalStorageValue('prompt-input')
-  const { chat } = useSharedChatContext()
-  const { modelId, reasoningEffort } = useSettings()
-  const { messages, sendMessage, status } = useChat<ChatUIMessage>({ chat })
-  const { setChatStatus } = useSandboxStore()
+const [input, setInput] = useLocalStorageValue('prompt-input')
+const [attachments, setAttachments] = useState<Attachment[]>([])
+const fileInputRef = useRef<HTMLInputElement | null>(null)
 
-  const validateAndSubmitMessage = useCallback(
-    (text: string) => {
-      if (text.trim()) {
-        sendMessage({ text }, { body: { modelId, reasoningEffort } })
-        setInput('')
-      }
-    },
-    [sendMessage, modelId, setInput, reasoningEffort]
-  )
+const { chat } = useSharedChatContext()
+const { modelId, reasoningEffort } = useSettings()
+const { messages, sendMessage, status } = useChat<ChatUIMessage>({ chat })
+const { setChatStatus } = useSandboxStore()
 
-  const handleSubmit = useCallback(
-    (e: React.FormEvent<HTMLFormElement>) => {
-      e.preventDefault()
-      validateAndSubmitMessage(input)
-    },
-    [validateAndSubmitMessage, input]
-  )
+const validateAndSubmitMessage = useCallback(
+(text: string) => {
+if (text.trim()) {
+sendMessage({ text }, { body: { modelId, reasoningEffort } })
+setInput('')
+setAttachments([])
+}
+},
+[sendMessage, modelId, setInput, reasoningEffort]
+)
 
-  useEffect(() => {
-    setChatStatus(status)
-  }, [status, setChatStatus])
+const handleSubmit = useCallback(
+(e: React.FormEvent<HTMLFormElement>) => {
+e.preventDefault()
+validateAndSubmitMessage(input)
+},
+[validateAndSubmitMessage, input]
+)
 
-  return (
-    <Panel className={className}>
-      <PanelHeader>
-        <div className="flex items-center font-mono font-semibold uppercase tracking-wide text-[11px] text-muted-foreground">
-          <MessageCircleIcon className="mr-2 w-3.5 h-3.5" />
-          Chat
-        </div>
-        <div className="ml-auto font-mono text-[10px] opacity-60">[{status}]</div>
-      </PanelHeader>
+const handlePickImage = useCallback(() => {
+fileInputRef.current?.click()
+}, [])
 
-      {/* Messages Area */}
-      {messages.length === 0 ? (
-        <div className="flex-1 min-h-0">
-          <div className="flex h-full flex-col items-center justify-center font-mono text-xs text-muted-foreground">
-            <p className="mb-2 font-semibold">Click and try one of these prompts:</p>
-            <ul className="p-3 space-y-1 text-center">
-              {TEST_PROMPTS.map((prompt, idx) => (
-                <li
-                  key={idx}
-                  className="px-3 py-2 rounded-sm border border-dashed border-border/80 bg-muted/30 shadow-sm cursor-pointer hover:bg-muted hover:text-foreground"
-                  onClick={() => validateAndSubmitMessage(prompt)}
-                >
-                  {prompt}
-                </li>
-              ))}
-            </ul>
-          </div>
-        </div>
-      ) : (
-        <Conversation className="relative w-full">
-          <ConversationContent className="space-y-4">
-            {messages.map((message) => (
-              <Message key={message.id} message={message} />
+const onFilesSelected = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+const files = Array.from(e.target.files || []).filter((f) => f.type.startsWith('image/'))
+if (files.length) {
+const mapped: Attachment[] = files.map((file) => ({ file, url: URL.createObjectURL(file) }))
+setAttachments((prev) => [...prev, ...mapped])
+}
+e.target.value = ''
+}, [])
+
+const attachmentCount = useMemo(() => attachments.length, [attachments])
+
+useEffect(() => {
+setChatStatus(status)
+}, [status, setChatStatus])
+
+const textareaClass = useMemo(
+() =>
+cn(
+'w-full font-mono text-[12px] leading-relaxed',
+'rounded-lg px-3',
+attachments.length > 0 ? 'pt-14 pb-2' : 'py-2',
+'bg-[#0f1113] border border-[#2c3038]',
+'placeholder:text-[#7d828b]',
+'shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]',
+'focus-visible:ring-[3px] focus-visible:ring-[#4a505a] focus-visible:border-[#4a505a]',
+'resize-y min-h-24 max-h-60'
+),
+[attachments.length]
+)
+
+return (
+<Panel className={className}>
+<PanelHeader>
+<div className="flex items-center font-mono font-semibold uppercase tracking-wide text-[11px] text-muted-foreground">
+<MessageCircleIcon className="mr-2 w-3.5 h-3.5" />
+Chat
+</div>
+<div className="ml-auto font-mono text-[10px] opacity-60">[{status}]</div>
+</PanelHeader>
+
+  {/* Messages Area */}
+  {messages.length === 0 ? (
+    <div className="flex-1 min-h-0">
+      <div className="flex h-full flex-col items-center justify-center font-mono text-xs text-muted-foreground">
+        <p className="mb-2 font-semibold">Click and try one of these prompts:</p>
+        <ul className="p-3 space-y-1 text-center">
+          {TEST_PROMPTS.map((prompt, idx) => (
+            <li
+              key={idx}
+              className="px-3 py-2 rounded-sm border border-dashed border-border/80 bg-muted/30 shadow-sm cursor-pointer hover:bg-muted hover:text-foreground"
+              onClick={() => validateAndSubmitMessage(prompt)}
+            >
+              {prompt}
+            </li>
+          ))}
+        </ul>
+      </div>
+    </div>
+  ) : (
+    <Conversation className="relative w-full">
+      <ConversationContent className="space-y-4">
+        {messages.map((message) => (
+          <Message key={message.id} message={message} />
+        ))}
+      </ConversationContent>
+      <ConversationScrollButton />
+    </Conversation>
+  )}
+
+  {/* Composer */}
+  <form onSubmit={handleSubmit} className="border-t border-border/80 bg-background/90">
+    {/* Text input area with inline attachment previews */}
+    <div className="p-2">
+      <div className="relative">
+        {/* Inline previews inside the textbox area (top-left) */}
+        {attachments.length > 0 && (
+          <div className="absolute top-3 left-3 z-10 flex items-center gap-2 pointer-events-none">
+            {attachments.slice(0, 4).map((att, i) => (
+              <img
+                key={i}
+                src={att.url}
+                alt={`attachment-${i + 1}`}
+                className="w-10 h-10 rounded-md border border-[#2c3038] shadow-xs object-cover"
+              />
             ))}
-          </ConversationContent>
-          <ConversationScrollButton />
-        </Conversation>
-      )}
+            {attachments.length > 4 && (
+              <div className="w-10 h-10 rounded-md border border-[#2c3038] bg-[#171a1f] text-[#a3a9b3] grid place-items-center text-[10px] font-medium shadow-xs">
+                +{attachments.length - 4}
+              </div>
+            )}
+          </div>
+        )}
 
-      {/* Composer */}
-      <form
-        className="flex items-center gap-2 p-2 border-t bg-background/80 border-border/80"
-        onSubmit={handleSubmit}
-      >
-        <Settings />
-
-        {/* Textbox-style input */}
-        <Input
+        <Textarea
           aria-label="Message"
-          className={[
-            'w-full font-mono text-[12px] leading-[1.2]',
-            'h-9 px-3 py-2 rounded-md',
-            'bg-[#0f1113] border border-[#262a31]',
-            'placeholder:text-[#7d828b]',
-            'shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]',
-            'focus-visible:ring-2 focus-visible:ring-[#3a404a] focus-visible:border-[#3a404a]',
-          ].join(' ')}
+          rows={4}
+          className={textareaClass}
           disabled={status === 'streaming' || status === 'submitted'}
           onChange={(e) => setInput(e.target.value)}
-          placeholder="Type your message…"
+          placeholder="What to vibe?"
           value={input}
         />
+      </div>
+    </div>
 
-        {/* Compact send button */}
+    {/* Controls bar */}
+    <div className="flex items-center gap-2 px-2 pb-2">
+      {/* Left controls */}
+      <div className="flex items-center gap-1.5">
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/*"
+          multiple
+          className="hidden"
+          onChange={onFilesSelected}
+        />
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          className="h-7 px-2 text-[10.5px] rounded-md"
+          onClick={handlePickImage}
+          title="Upload image"
+          aria-label="Upload image"
+        >
+          <ImageUpIcon className="w-3.5 h-3.5" />
+          {attachmentCount > 0 ? <span className="ml-1 tabular-nums">{attachmentCount}</span> : null}
+        </Button>
+
+        <Settings />
+      </div>
+
+      {/* Right send */}
+      <div className="ml-auto">
         <Button
           type="submit"
           size="sm"
-          className="h-8 px-2 text-[11px] font-medium rounded-md bg-secondary border border-border hover:bg-secondary/80"
-          disabled={status !== 'ready' || !input.trim()}
+          className="h-7 px-2 text-[10.5px] font-medium rounded-md bg-secondary border border-border hover:bg-secondary/80"
+          disabled={status !== 'ready' || (!input.trim() && attachmentCount === 0)}
+          title="Send"
+          aria-label="Send message"
         >
           <SendIcon className="w-3.5 h-3.5" />
         </Button>
-      </form>
-    </Panel>
-  )
+      </div>
+    </div>
+  </form>
+</Panel>
+)
 }

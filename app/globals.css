@@ -1,10 +1,15 @@
 @import 'tailwindcss';
 @import 'tw-animate-css';
+/* JetBrains Mono from local package for crisp mono UI */
+@import '@fontsource/jetbrains-mono/400.css';
+@import '@fontsource/jetbrains-mono/500.css';
+@import '@fontsource/jetbrains-mono/600.css';
+@import '@fontsource/jetbrains-mono/700.css';
 
 /* --- Dark Grey Theme Tokens --- */
 :root {
   --background: rgb(15, 17, 19);           /* #0f1113 */
-  --foreground: rgb(230, 230, 232);
+  --foreground: rgb(226, 228, 232);
 
   --card: rgb(18, 20, 23);                 /* #121417 */
   --card-foreground: rgb(230, 230, 232);
@@ -19,7 +24,7 @@
   --secondary-foreground: rgb(185, 190, 199);
 
   --muted: rgb(23, 26, 31);                /* #171a1f */
-  --muted-foreground: rgb(138, 144, 153);
+  --muted-foreground: rgb(134, 140, 149);
 
   --accent: rgb(28, 33, 39);               /* #1c2127 */
   --accent-foreground: rgb(211, 215, 222);
@@ -27,9 +32,9 @@
   --destructive: rgb(229, 72, 77);         /* #e5484d */
   --destructive-foreground: rgb(245, 245, 245);
 
-  --border: rgb(38, 42, 49);               /* #262a31 */
+  --border: rgb(44, 48, 56);               /* refined border */
   --input: rgb(42, 47, 55);                /* #2a2f37 */
-  --ring: rgb(58, 64, 74);                 /* #3a404a */
+  --ring: rgb(74, 80, 90);                 /* #4a505a */
 
   --chart-1: rgb(128, 132, 140);
   --chart-2: rgb(112, 116, 124);
@@ -56,8 +61,8 @@
   /* Subtle shadows tuned for dark UI */
   --shadow-2xs: 0 1px 0 rgba(255,255,255,0.03) inset;
   --shadow-xs: 0 1px 0 rgba(255,255,255,0.03) inset;
-  --shadow-sm: 0 0 0 1px rgba(255,255,255,0.04), 0 8px 16px -8px rgba(0,0,0,0.6);
-  --shadow:    0 0 0 1px rgba(255,255,255,0.05), 0 24px 32px -12px rgba(0,0,0,0.55);
+  --shadow-sm: 0 0 0 1px rgba(255,255,255,0.04), 0 8px 16px -8px rgba(0,0,0,0.55);
+  --shadow:    0 0 0 1px rgba(255,255,255,0.05), 0 24px 32px -12px rgba(0,0,0,0.5);
   --shadow-md: 0 0 0 1px rgba(255,255,255,0.05);
   --shadow-lg: 0 0 0 1px rgba(255,255,255,0.06);
   --shadow-xl: 0 0 0 1px rgba(255,255,255,0.07);
@@ -122,10 +127,10 @@
 
 @layer base {
   * { @apply border-border outline-ring/50; }
-  body { @apply bg-background text-foreground font-mono antialiased; }
+  body { @apply bg-background text-foreground font-mono antialiased text-[12.5px]; }
 }
 
 /* Optional: slim, unobtrusive scrollbars on dark bg */
 *::-webkit-scrollbar { width: 10px; height: 10px; }
-*::-webkit-scrollbar-thumb { background: color-mix(in oklab, var(--border), black 10%); border-radius: 999px; }
+*::-webkit-scrollbar-thumb { background: color-mix(in oklab, var(--border), black 8%); border-radius: 999px; }
 *::-webkit-scrollbar-track { background: transparent; }
