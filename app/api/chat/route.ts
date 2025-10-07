@@ -69,13 +69,21 @@ export async function POST(req: Request) {
                     },
                 });
                 result.consumeStream();
+                
+                let metadataSent = false;
                 writer.merge(
                     result.toUIMessageStream({
                         sendReasoning: true,
                         sendStart: false,
-                        messageMetadata: () => ({
-                            model: model.name,
-                        }),
+                        messageMetadata: () => {
+                            if (!metadataSent) {
+                                metadataSent = true;
+                                return {
+                                    model: model.name,
+                                };
+                            }
+                            return undefined;
+                        },
                     })
                 );
             },
