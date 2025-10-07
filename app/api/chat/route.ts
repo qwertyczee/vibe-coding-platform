@@ -1,10 +1,9 @@
 import { type ChatUIMessage } from '@/components/chat/types';
 import {
     convertToModelMessages,
-    createUIMessageStream,
-    createUIMessageStreamResponse,
     stepCountIs,
     streamText,
+    type UIMessageStreamWriter,
 } from 'ai';
 import { DEFAULT_MODEL } from '@/ai/constants';
 import { NextResponse } from 'next/server';
@@ -33,10 +32,57 @@ export async function POST(req: Request) {
         );
     }
 
-    return createUIMessageStreamResponse({
-        stream: createUIMessageStream({
-            originalMessages: messages,
-            execute: ({ writer }) => {
+    const encoder = new TextEncoder();
+    const stream = new ReadableStream({
+        async start(controller) {
+            let streamClosed = false;
+            
+            try {
+                // Vytvořit writer který implementuje celé rozhraní
+                const writer: UIMessageStreamWriter<any> = {
+                    write: (chunk: any) => {
+                        if (!streamClosed) {
+                            controller.enqueue(encoder.encode(`data: ${JSON.stringify(chunk)}\n\n`));
+                        }
+                    },
+                    merge: (stream: ReadableStream) => {
+                        // Sloučit další stream do hlavního streamu
+                        (async () => {
+                            const reader = stream.getReader();
+                            try {
+                                while (true) {
+                                    const { done, value } = await reader.read();
+                                    if (done) break;
+                                    
+                                    // Konvertovat value (objekt) na správný formát
+                                    if (!streamClosed) {
+                                        if (value instanceof Uint8Array) {
+                                            controller.enqueue(value);
+                                        } else {
+                                            // Pokud je value objekt, serializovat ho
+                                            controller.enqueue(encoder.encode(`data: ${JSON.stringify(value)}\n\n`));
+                                        }
+                                    }
+                                }
+                            } catch (error) {
+                                if (!streamClosed) {
+                                    console.error('Error merging stream:', error);
+                                }
+                            }
+                        })();
+                    },
+                    onError: (error: unknown) => {
+                        console.error('Writer error:', error);
+                        if (!streamClosed) {
+                            const errorMessage = error instanceof Error ? error.message : String(error);
+                            controller.enqueue(encoder.encode(`data: ${JSON.stringify({
+                                type: 'error',
+                                error: errorMessage,
+                            })}\n\n`));
+                        }
+                    },
+                };
+
                 const result = streamText({
                     ...getModelOptions(modelId, { reasoningEffort }),
                     system: prompt,
@@ -68,25 +114,50 @@ export async function POST(req: Request) {
                         console.error(JSON.stringify(error, null, 2));
                     },
                 });
+
                 result.consumeStream();
-                
+
+                // Odeslat metadata na začátku
                 let metadataSent = false;
+                const messageMetadata = () => {
+                    if (!metadataSent) {
+                        metadataSent = true;
+                        return {
+                            model: model.name,
+                        };
+                    }
+                    return undefined;
+                };
+
+                // Stream AI odpovědi
                 writer.merge(
                     result.toUIMessageStream({
                         sendReasoning: true,
                         sendStart: false,
-                        messageMetadata: () => {
-                            if (!metadataSent) {
-                                metadataSent = true;
-                                return {
-                                    model: model.name,
-                                };
-                            }
-                            return undefined;
-                        },
+                        messageMetadata,
                     })
                 );
-            },
-        }),
+
+                // Počkat na dokončení streamu
+                await result.response;
+                
+                streamClosed = true;
+                controller.close();
+            } catch (error) {
+                console.error('Stream error:', error);
+                streamClosed = true;
+                if (!streamClosed) {
+                    controller.error(error);
+                }
+            }
+        },
+    });
+
+    return new Response(stream, {
+        headers: {
+            'Content-Type': 'text/event-stream',
+            'Cache-Control': 'no-cache',
+            'Connection': 'keep-alive',
+        },
     });
 }
