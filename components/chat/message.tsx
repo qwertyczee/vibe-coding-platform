@@ -11,6 +11,8 @@ interface Props {
 interface ReasoningContextType {
   expandedReasoningIndex: number | null
   setExpandedReasoningIndex: (index: number | null) => void
+  autoExpand: boolean
+  setAutoExpand: (autoExpand: boolean) => void
 }
 
 const ReasoningContext = createContext<ReasoningContextType | null>(null)
@@ -24,6 +26,7 @@ export const Message = memo(function Message({ message }: Props) {
   const [expandedReasoningIndex, setExpandedReasoningIndex] = useState<
     number | null
   >(null)
+  const [autoExpand, setAutoExpand] = useState(true)
 
   const reasoningParts = useMemo(() =>
     message.parts
@@ -33,16 +36,16 @@ export const Message = memo(function Message({ message }: Props) {
   )
 
   useEffect(() => {
-    if (reasoningParts.length > 0) {
+    if (reasoningParts.length > 0 && autoExpand) {
       const latestReasoningIndex =
         reasoningParts[reasoningParts.length - 1].index
       setExpandedReasoningIndex(latestReasoningIndex)
     }
-  }, [reasoningParts])
+  }, [reasoningParts, autoExpand])
 
   return (
     <ReasoningContext.Provider
-      value={{ expandedReasoningIndex, setExpandedReasoningIndex }}
+      value={{ expandedReasoningIndex, setExpandedReasoningIndex, autoExpand, setAutoExpand }}
     >
       <div
         className={cn({

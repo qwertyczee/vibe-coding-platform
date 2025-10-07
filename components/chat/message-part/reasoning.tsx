@@ -2,7 +2,8 @@ import type { ReasoningUIPart } from 'ai'
 import { MarkdownRenderer } from '@/components/markdown-renderer/markdown-renderer'
 import { MessageSpinner } from '../message-spinner'
 import { useReasoningContext } from '../message'
-import { memo, useCallback } from 'react'
+import { memo, useCallback, useMemo } from 'react'
+import { ChevronDownIcon, ChevronRightIcon, BrainIcon } from 'lucide-react'
 
 export const Reasoning = memo(function Reasoning({
   part,
@@ -20,31 +21,75 @@ export const Reasoning = memo(function Reasoning({
 
   const text = part.text || '_Thinking_'
   const isStreaming = part.state === 'streaming'
-  const firstLine = text.split('\n')[0].replace(/\*\*/g, '')
-  const hasMoreContent = text.includes('\n') || text.length > 80
+  
+  const reasoningInfo = useMemo(() => {
+    const firstLine = text.split('\n')[0].replace(/\*\*/g, '')
+    const hasMoreContent = text.includes('\n') || text.length > 80
+    const wordCount = text.split(/\s+/).length
+    return { firstLine, hasMoreContent, wordCount }
+  }, [text])
 
-  const handleClick = useCallback(() => {
-    if (hasMoreContent && context) {
+  const handleToggle = useCallback(() => {
+    if (context) {
       const newIndex = isExpanded ? null : partIndex
       context.setExpandedReasoningIndex(newIndex)
+      // Disable auto-expand when user manually toggles
+      if (context.autoExpand) {
+        context.setAutoExpand(false)
+      }
     }
-  }, [hasMoreContent, isExpanded, partIndex, context])
+  }, [isExpanded, partIndex, context])
+
+  const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault()
+      handleToggle()
+    }
+  }, [handleToggle])
 
   return (
-    <div
-      className="text-sm border border-border bg-background rounded-md cursor-pointer hover:bg-accent/30 transition-colors"
-      onClick={handleClick}
-    >
-      <div className="px-3 py-2">
-        <div className="text-secondary-foreground font-mono leading-normal">
-          {isExpanded || !hasMoreContent ? (
-            <MarkdownRenderer content={text} />
-          ) : (
-            <div className="overflow-hidden">{firstLine}</div>
+    <div className="border border-border/50 bg-muted/30 rounded-md overflow-hidden">
+      <div
+        className="flex items-center gap-2 px-3 py-2 cursor-pointer hover:bg-muted/50 transition-colors select-none"
+        onClick={handleToggle}
+        onKeyDown={handleKeyDown}
+        role="button"
+        tabIndex={0}
+        aria-expanded={isExpanded}
+        aria-label={`Reasoning ${isExpanded ? 'expanded' : 'collapsed'}`}
+      >
+        <BrainIcon className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+        <div className="flex items-center gap-2 flex-1 min-w-0">
+          <span className="text-sm font-medium text-muted-foreground">
+            Reasoning
+          </span>
+          {isStreaming && (
+            <MessageSpinner />
           )}
-          {isStreaming && isExpanded && <MessageSpinner />}
+          {!isExpanded && (
+            <span className="text-xs text-muted-foreground/70">
+              {reasoningInfo.wordCount} words
+            </span>
+          )}
         </div>
+        {reasoningInfo.hasMoreContent && (
+          <div className="flex items-center gap-1">
+            {isExpanded ? (
+              <ChevronDownIcon className="w-4 h-4 text-muted-foreground" />
+            ) : (
+              <ChevronRightIcon className="w-4 h-4 text-muted-foreground" />
+            )}
+          </div>
+        )}
       </div>
+      
+      {isExpanded && (
+        <div className="px-3 py-2 border-t border-border/30">
+          <div className="text-sm text-muted-foreground font-mono leading-relaxed">
+            <MarkdownRenderer content={text} />
+          </div>
+        </div>
+      )}
     </div>
   )
 })
