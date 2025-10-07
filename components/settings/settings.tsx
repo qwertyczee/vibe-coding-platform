@@ -6,6 +6,7 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover'
 import { ReasoningEffort } from './reasoning-effort'
+import { ModelSelector } from './model-selector'
 import { SlidersVerticalIcon } from 'lucide-react'
 
 export function Settings() {
@@ -18,6 +19,10 @@ export function Settings() {
       </PopoverTrigger>
       <PopoverContent className="p-0 w-96">
         <div className="p-4 space-y-6">
+          <div>
+            <h3 className="text-sm font-medium mb-2">Model Selection</h3>
+            <ModelSelector />
+          </div>
           <AutoFixErrors />
           <ReasoningEffort />
         </div>

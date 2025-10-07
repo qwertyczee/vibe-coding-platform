@@ -11,7 +11,6 @@ import {
 } from '@/components/ai-elements/conversation'
 import { Input } from '@/components/ui/input'
 import { Message } from '@/components/chat/message'
-import { ModelSelector } from '@/components/settings/model-selector'
 import { Panel, PanelHeader } from '@/components/panels/panels'
 import { Settings } from '@/components/settings/settings'
 import { useChat } from '@ai-sdk/react'
@@ -43,6 +42,14 @@ export function Chat({ className }: Props) {
     [sendMessage, modelId, setInput, reasoningEffort]
   )
 
+  const handleSubmit = useCallback(
+    (e: React.FormEvent<HTMLFormElement>) => {
+      e.preventDefault()
+      validateAndSubmitMessage(input)
+    },
+    [validateAndSubmitMessage, input]
+  )
+
   useEffect(() => {
     setChatStatus(status)
   }, [status, setChatStatus])
@@ -50,25 +57,23 @@ export function Chat({ className }: Props) {
   return (
     <Panel className={className}>
       <PanelHeader>
-        <div className="flex items-center font-mono font-semibold uppercase">
-          <MessageCircleIcon className="mr-2 w-4" />
+        <div className="flex items-center font-mono font-semibold uppercase tracking-wide text-[11px] text-muted-foreground">
+          <MessageCircleIcon className="mr-2 w-3.5 h-3.5" />
           Chat
         </div>
-        <div className="ml-auto font-mono text-xs opacity-50">[{status}]</div>
+        <div className="ml-auto font-mono text-[10px] opacity-60">[{status}]</div>
       </PanelHeader>
 
       {/* Messages Area */}
       {messages.length === 0 ? (
         <div className="flex-1 min-h-0">
-          <div className="flex flex-col justify-center items-center h-full font-mono text-sm text-muted-foreground">
-            <p className="flex items-center font-semibold">
-              Click and try one of these prompts:
-            </p>
-            <ul className="p-4 space-y-1 text-center">
+          <div className="flex h-full flex-col items-center justify-center font-mono text-xs text-muted-foreground">
+            <p className="mb-2 font-semibold">Click and try one of these prompts:</p>
+            <ul className="p-3 space-y-1 text-center">
               {TEST_PROMPTS.map((prompt, idx) => (
                 <li
                   key={idx}
-                  className="px-4 py-2 rounded-sm border border-dashed shadow-sm cursor-pointer border-border hover:bg-secondary/50 hover:text-primary"
+                  className="px-3 py-2 rounded-sm border border-dashed border-border/80 bg-muted/30 shadow-sm cursor-pointer hover:bg-muted hover:text-foreground"
                   onClick={() => validateAndSubmitMessage(prompt)}
                 >
                   {prompt}
@@ -88,24 +93,38 @@ export function Chat({ className }: Props) {
         </Conversation>
       )}
 
+      {/* Composer */}
       <form
-        className="flex items-center p-2 space-x-1 border-t border-primary/18 bg-background"
-        onSubmit={async (event) => {
-          event.preventDefault()
-          validateAndSubmitMessage(input)
-        }}
+        className="flex items-center gap-2 p-2 border-t bg-background/80 border-border/80"
+        onSubmit={handleSubmit}
       >
         <Settings />
-        <ModelSelector />
+
+        {/* Textbox-style input */}
         <Input
-          className="w-full font-mono text-sm rounded-sm border-0 bg-background"
+          aria-label="Message"
+          className={[
+            'w-full font-mono text-[12px] leading-[1.2]',
+            'h-9 px-3 py-2 rounded-md',
+            'bg-[#0f1113] border border-[#262a31]',
+            'placeholder:text-[#7d828b]',
+            'shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]',
+            'focus-visible:ring-2 focus-visible:ring-[#3a404a] focus-visible:border-[#3a404a]',
+          ].join(' ')}
           disabled={status === 'streaming' || status === 'submitted'}
           onChange={(e) => setInput(e.target.value)}
-          placeholder="Type your message..."
+          placeholder="Type your message…"
           value={input}
         />
-        <Button type="submit" disabled={status !== 'ready' || !input.trim()}>
-        <SendIcon className="w-4 h-4" />
+
+        {/* Compact send button */}
+        <Button
+          type="submit"
+          size="sm"
+          className="h-8 px-2 text-[11px] font-medium rounded-md bg-secondary border border-border hover:bg-secondary/80"
+          disabled={status !== 'ready' || !input.trim()}
+        >
+          <SendIcon className="w-3.5 h-3.5" />
         </Button>
       </form>
     </Panel>
