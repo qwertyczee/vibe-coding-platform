@@ -1,16 +1,11 @@
 import { Models } from '@/ai/constants'
 import { NextResponse } from 'next/server'
-import { checkBotId } from 'botid/server'
 import { generateObject } from 'ai'
+import { getModelOptions } from '@/ai/openrouter'
 import { linesSchema, resultSchema } from '@/components/error-monitor/schemas'
 import prompt from './prompt.md'
 
 export async function POST(req: Request) {
-  const checkResult = await checkBotId()
-  if (checkResult.isBot) {
-    return NextResponse.json({ error: `Bot detected` }, { status: 403 })
-  }
-
   const body = await req.json()
   const parsedBody = linesSchema.safeParse(body)
   if (!parsedBody.success) {
