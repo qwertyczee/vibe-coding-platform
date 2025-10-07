@@ -1,7 +1,7 @@
 import type { ChatUIMessage } from './types'
 import { MessagePart } from './message-part'
 import { BotIcon, UserIcon } from 'lucide-react'
-import { memo, createContext, useContext, useState, useEffect } from 'react'
+import { memo, createContext, useContext, useState, useEffect, useMemo } from 'react'
 import { cn } from '@/lib/utils'
 
 interface Props {
@@ -25,9 +25,12 @@ export const Message = memo(function Message({ message }: Props) {
     number | null
   >(null)
 
-  const reasoningParts = message.parts
-    .map((part, index) => ({ part, index }))
-    .filter(({ part }) => part.type === 'reasoning')
+  const reasoningParts = useMemo(() =>
+    message.parts
+      .map((part, index) => ({ part, index }))
+      .filter(({ part }) => part.type === 'reasoning'),
+    [message.parts]
+  )
 
   useEffect(() => {
     if (reasoningParts.length > 0) {

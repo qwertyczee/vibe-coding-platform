@@ -3,22 +3,30 @@ import { CheckIcon, CloudUploadIcon, XIcon } from 'lucide-react'
 import { Spinner } from './spinner'
 import { ToolHeader } from '../tool-header'
 import { ToolMessage } from '../tool-message'
+import { memo, useMemo } from 'react'
 
-export function GenerateFiles(props: {
+export const GenerateFiles = memo(function GenerateFiles(props: {
   className?: string
   message: DataPart['generating-files']
 }) {
-  const lastInProgress = ['error', 'uploading', 'generating'].includes(
-    props.message.status
+  const lastInProgress = useMemo(() =>
+    ['error', 'uploading', 'generating'].includes(props.message.status),
+    [props.message.status]
   )
 
-  const generated = lastInProgress
-    ? props.message.paths.slice(0, props.message.paths.length - 1)
-    : props.message.paths
+  const generated = useMemo(() =>
+    lastInProgress
+      ? props.message.paths.slice(0, props.message.paths.length - 1)
+      : props.message.paths,
+    [lastInProgress, props.message.paths]
+  )
 
-  const generating = lastInProgress
-    ? props.message.paths[props.message.paths.length - 1] ?? ''
-    : null
+  const generating = useMemo(() =>
+    lastInProgress
+      ? props.message.paths[props.message.paths.length - 1] ?? ''
+      : null,
+    [lastInProgress, props.message.paths]
+  )
 
   return (
     <ToolMessage className={props.className}>
@@ -55,4 +63,4 @@ export function GenerateFiles(props: {
       </div>
     </ToolMessage>
   )
-}
+})

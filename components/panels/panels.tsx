@@ -1,12 +1,13 @@
 import type { ReactNode } from 'react'
 import { cn } from '@/lib/utils'
+import { memo } from 'react'
 
 interface Props {
   className?: string
   children: ReactNode
 }
 
-export function Panel({ className, children }: Props) {
+export const Panel = memo(function Panel({ className, children }: Props) {
   return (
     <div
       className={cn(
@@ -17,9 +18,9 @@ export function Panel({ className, children }: Props) {
       {children}
     </div>
   )
-}
+})
 
-export function PanelHeader({ className, children }: Props) {
+export const PanelHeader = memo(function PanelHeader({ className, children }: Props) {
   return (
     <div
       className={cn(
@@ -30,4 +31,4 @@ export function PanelHeader({ className, children }: Props) {
       {children}
     </div>
   )
-}
+})

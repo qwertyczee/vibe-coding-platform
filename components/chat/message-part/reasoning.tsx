@@ -2,8 +2,9 @@ import type { ReasoningUIPart } from 'ai'
 import { MarkdownRenderer } from '@/components/markdown-renderer/markdown-renderer'
 import { MessageSpinner } from '../message-spinner'
 import { useReasoningContext } from '../message'
+import { memo, useCallback } from 'react'
 
-export function Reasoning({
+export const Reasoning = memo(function Reasoning({
   part,
   partIndex,
 }: {
@@ -22,12 +23,12 @@ export function Reasoning({
   const firstLine = text.split('\n')[0].replace(/\*\*/g, '')
   const hasMoreContent = text.includes('\n') || text.length > 80
 
-  const handleClick = () => {
+  const handleClick = useCallback(() => {
     if (hasMoreContent && context) {
       const newIndex = isExpanded ? null : partIndex
       context.setExpandedReasoningIndex(newIndex)
     }
-  }
+  }, [hasMoreContent, isExpanded, partIndex, context])
 
   return (
     <div
@@ -46,4 +47,4 @@ export function Reasoning({
       </div>
     </div>
   )
-}
+})

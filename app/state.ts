@@ -2,7 +2,7 @@ import type { Command, CommandLog } from '@/components/commands-logs/types'
 import type { DataPart } from '@/ai/messages/data-parts'
 import type { ChatStatus, DataUIPart } from 'ai'
 import { useMonitorState } from '@/components/error-monitor/state'
-import { useMemo } from 'react'
+import { useMemo, useCallback } from 'react'
 import { create } from 'zustand'
 
 interface SandboxStore {
@@ -97,6 +97,16 @@ export const useSandboxStore = create<SandboxStore>()((set) => ({
   },
 }))
 
+// Selectors for optimized state access
+export const useCommands = () => useSandboxStore((state) => state.commands)
+export const useChatStatus = () => useSandboxStore((state) => state.chatStatus)
+export const useSetChatStatus = () => useSandboxStore((state) => state.setChatStatus)
+export const useSandboxId = () => useSandboxStore((state) => state.sandboxId)
+export const useGeneratedFiles = () => useSandboxStore((state) => state.generatedFiles)
+export const usePaths = () => useSandboxStore((state) => state.paths)
+export const useSandboxStatus = () => useSandboxStore((state) => state.status)
+export const useSandboxUrl = () => useSandboxStore((state) => ({ url: state.url, urlUUID: state.urlUUID }))
+
 interface FileExplorerStore {
   paths: string[]
   addPath: (path: string) => void
@@ -120,7 +130,7 @@ export function useDataStateMapper() {
   const { errors } = useCommandErrorsLogs()
   const { setCursor } = useMonitorState()
 
-  return (data: DataUIPart<DataPart>) => {
+  return useCallback((data: DataUIPart<DataPart>) => {
     switch (data.type) {
       case 'data-create-sandbox':
         if (data.data.sandboxId) {
@@ -156,5 +166,5 @@ export function useDataStateMapper() {
       default:
         break
     }
-  }
+  }, [addPaths, setSandboxId, setUrl, upsertCommand, addGeneratedFiles, errors.length, setCursor])
 }
