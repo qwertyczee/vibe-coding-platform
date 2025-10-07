@@ -77,7 +77,7 @@ export function ErrorMonitor({ children, debounceTimeMs = 10000 }: Props) {
 
     startTransition(async () => {
       const summary = await getSummary(errors, prev)
-      if (summary.shouldBeFixed) {
+      if (summary && summary.shouldBeFixed) {
         newErrors.forEach((key) => {
           errorReportCount.current.set(key, 1)
         })
