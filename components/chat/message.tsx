@@ -8,6 +8,7 @@ import {
     useState,
     useEffect,
     useMemo,
+    useCallback,
 } from 'react';
 import { cn } from '@/lib/utils';
 
@@ -51,34 +52,52 @@ export const Message = memo(function Message({ message }: Props) {
         }
     }, [reasoningParts, autoExpand]);
 
+    // Memoize context value to prevent unnecessary re-renders
+    const contextValue = useMemo(
+        () => ({
+            expandedReasoningIndex,
+            setExpandedReasoningIndex,
+            autoExpand,
+            setAutoExpand,
+        }),
+        [expandedReasoningIndex, autoExpand]
+    );
+
+    // Memoize the class name calculation
+    const messageClassName = useMemo(
+        () =>
+            cn({
+                'mr-20': message.role === 'assistant',
+                'ml-20': message.role === 'user',
+            }),
+        [message.role]
+    );
+
+    // Memoize the header content
+    const headerContent = useMemo(() => {
+        if (message.role === 'user') {
+            return (
+                <>
+                    <UserIcon className="ml-auto w-4" />
+                    <span>You</span>
+                </>
+            );
+        } else {
+            return (
+                <>
+                    <BotIcon className="w-4" />
+                    <span>Assistant ({message.metadata?.model})</span>
+                </>
+            );
+        }
+    }, [message.role, message.metadata?.model]);
+
     return (
-        <ReasoningContext.Provider
-            value={{
-                expandedReasoningIndex,
-                setExpandedReasoningIndex,
-                autoExpand,
-                setAutoExpand,
-            }}
-        >
-            <div
-                className={cn({
-                    'mr-20': message.role === 'assistant',
-                    'ml-20': message.role === 'user',
-                })}
-            >
+        <ReasoningContext.Provider value={contextValue}>
+            <div className={messageClassName}>
                 {/* Message Header */}
                 <div className="text-primary mb-1.5 flex items-center gap-2 font-mono text-sm font-medium">
-                    {message.role === 'user' ? (
-                        <>
-                            <UserIcon className="ml-auto w-4" />
-                            <span>You</span>
-                        </>
-                    ) : (
-                        <>
-                            <BotIcon className="w-4" />
-                            <span>Assistant ({message.metadata?.model})</span>
-                        </>
-                    )}
+                    {headerContent}
                 </div>
 
                 {/* Message Content */}

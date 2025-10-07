@@ -3,12 +3,29 @@ import { BoxIcon, CheckIcon, XIcon } from 'lucide-react';
 import { Spinner } from './spinner';
 import { ToolHeader } from '../tool-header';
 import { ToolMessage } from '../tool-message';
+import { memo, useMemo } from 'react';
 
 interface Props {
     message: DataPart['create-sandbox'];
 }
 
-export function CreateSandbox({ message }: Props) {
+export const CreateSandbox = memo(function CreateSandbox({ message }: Props) {
+    const statusText = useMemo(() => {
+        switch (message.status) {
+            case 'done':
+                return 'Sandbox created successfully';
+            case 'loading':
+                return 'Creating Sandbox';
+            case 'error':
+                return 'Failed to create sandbox';
+            default:
+                return '';
+        }
+    }, [message.status]);
+
+    const isLoading = message.status === 'loading';
+    const isError = message.status === 'error';
+
     return (
         <ToolMessage>
             <ToolHeader>
@@ -18,21 +35,16 @@ export function CreateSandbox({ message }: Props) {
             <div className="relative min-h-5 pl-6">
                 <Spinner
                     className="absolute top-0 left-0"
-                    loading={message.status === 'loading'}
+                    loading={isLoading}
                 >
-                    {message.status === 'error' ? (
+                    {isError ? (
                         <XIcon className="h-4 w-4 text-red-700" />
                     ) : (
                         <CheckIcon className="h-4 w-4" />
                     )}
                 </Spinner>
-                <span>
-                    {message.status === 'done' &&
-                        'Sandbox created successfully'}
-                    {message.status === 'loading' && 'Creating Sandbox'}
-                    {message.status === 'error' && 'Failed to create sandbox'}
-                </span>
+                <span>{statusText}</span>
             </div>
         </ToolMessage>
     );
-}
+});

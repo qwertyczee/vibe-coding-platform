@@ -29,7 +29,7 @@ interface Props {
 }
 
 export const Chat = memo(function Chat({ className }: Props) {
-    const [input, setInput] = useLocalStorageValue('prompt-input');
+    const [input, setInput] = useLocalStorageValue('prompt-input', '');
     const [attachments, setAttachments] = useState<Attachment[]>([]);
     const fileInputRef = useRef<HTMLInputElement | null>(null);
 
@@ -99,6 +99,9 @@ export const Chat = memo(function Chat({ className }: Props) {
         [attachmentCount]
     );
 
+    // Memoize the test prompts to prevent re-creation on every render
+    const testPrompts = useMemo(() => TEST_PROMPTS, []);
+
     return (
         <Panel className={className}>
             <PanelHeader>
@@ -119,7 +122,7 @@ export const Chat = memo(function Chat({ className }: Props) {
                             Click and try one of these prompts:
                         </p>
                         <ul className="space-y-1 p-3 text-center">
-                            {TEST_PROMPTS.map((prompt, idx) => (
+                            {testPrompts.map((prompt, idx) => (
                                 <li
                                     key={idx}
                                     className="border-border/80 bg-muted/30 hover:bg-muted hover:text-foreground cursor-pointer rounded-sm border border-dashed px-3 py-2 shadow-sm"
@@ -153,19 +156,19 @@ export const Chat = memo(function Chat({ className }: Props) {
                 <div className="p-2">
                     <div className="relative">
                         {/* Inline previews inside the textbox area (top-left) */}
-                        {attachments.length > 0 && (
+                        {attachmentCount > 0 && (
                             <div className="pointer-events-none absolute top-3 left-3 z-10 flex items-center gap-2">
                                 {attachments.slice(0, 4).map((att, i) => (
                                     <img
-                                        key={i}
+                                        key={`${att.url}-${i}`}
                                         src={att.url}
                                         alt={`attachment-${i + 1}`}
                                         className="h-10 w-10 rounded-md border border-[#2c3038] object-cover shadow-xs"
                                     />
                                 ))}
-                                {attachments.length > 4 && (
+                                {attachmentCount > 4 && (
                                     <div className="grid h-10 w-10 place-items-center rounded-md border border-[#2c3038] bg-[#171a1f] text-[10px] font-medium text-[#a3a9b3] shadow-xs">
-                                        +{attachments.length - 4}
+                                        +{attachmentCount - 4}
                                     </div>
                                 )}
                             </div>

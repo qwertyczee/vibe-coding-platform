@@ -49,16 +49,21 @@ export const Reasoning = memo(function Reasoning({
         [handleToggle]
     );
 
+    // Memoize the button props to prevent re-creation
+    const buttonProps = useMemo(() => ({
+        onClick: handleToggle,
+        onKeyDown: handleKeyDown,
+        role: 'button' as const,
+        tabIndex: 0,
+        'aria-expanded': isExpanded,
+        'aria-label': `Reasoning ${isExpanded ? 'expanded' : 'collapsed'}`,
+    }), [handleToggle, handleKeyDown, isExpanded]);
+
     return (
         <div className="border-border/50 bg-muted/30 overflow-hidden rounded-md border">
             <div
                 className="hover:bg-muted/50 flex cursor-pointer items-center gap-2 px-3 py-2 transition-colors select-none"
-                onClick={handleToggle}
-                onKeyDown={handleKeyDown}
-                role="button"
-                tabIndex={0}
-                aria-expanded={isExpanded}
-                aria-label={`Reasoning ${isExpanded ? 'expanded' : 'collapsed'}`}
+                {...buttonProps}
             >
                 <BrainIcon className="text-muted-foreground h-4 w-4 flex-shrink-0" />
                 <div className="flex min-w-0 flex-1 items-center gap-2">
