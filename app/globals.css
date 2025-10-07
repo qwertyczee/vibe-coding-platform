@@ -1,114 +1,70 @@
 @import 'tailwindcss';
 @import 'tw-animate-css';
 
-@custom-variant dark (&:is(.dark *));
-
+/* --- Dark Grey Theme Tokens --- */
 :root {
-  --background: rgb(255, 255, 255);
-  --foreground: rgb(10, 10, 10);
-  --card: rgb(255, 255, 255);
-  --card-foreground: rgb(10, 10, 10);
-  --popover: rgb(255, 255, 255);
-  --popover-foreground: rgb(10, 10, 10);
-  --primary: rgb(41, 41, 41);
-  --primary-foreground: rgb(250, 250, 250);
-  --secondary: rgb(250, 250, 250);
-  --secondary-foreground: rgb(90, 90, 90);
-  --muted: rgb(240, 240, 240);
-  --muted-foreground: rgb(113, 113, 113);
-  --accent: rgb(245, 245, 245);
-  --accent-foreground: oklch(57.61% 0.2508 258.23);
-  --destructive: rgb(231, 0, 11);
+  --background: rgb(15, 17, 19);           /* #0f1113 */
+  --foreground: rgb(230, 230, 232);
+
+  --card: rgb(18, 20, 23);                 /* #121417 */
+  --card-foreground: rgb(230, 230, 232);
+
+  --popover: rgb(15, 17, 19);
+  --popover-foreground: rgb(230, 230, 232);
+
+  --primary: rgb(42, 47, 55);              /* #2a2f37 */
+  --primary-foreground: rgb(240, 240, 242);
+
+  --secondary: rgb(26, 29, 33);            /* #1a1d21 */
+  --secondary-foreground: rgb(185, 190, 199);
+
+  --muted: rgb(23, 26, 31);                /* #171a1f */
+  --muted-foreground: rgb(138, 144, 153);
+
+  --accent: rgb(28, 33, 39);               /* #1c2127 */
+  --accent-foreground: rgb(211, 215, 222);
+
+  --destructive: rgb(229, 72, 77);         /* #e5484d */
   --destructive-foreground: rgb(245, 245, 245);
-  --border: rgb(229, 229, 229);
-  --input: rgb(229, 229, 229);
-  --ring: rgb(161, 161, 161);
-  --chart-1: rgb(115, 115, 115);
-  --chart-2: rgb(115, 115, 115);
-  --chart-3: rgb(115, 115, 115);
-  --chart-4: rgb(115, 115, 115);
-  --chart-5: rgb(115, 115, 115);
-  --sidebar: rgb(250, 250, 250);
-  --sidebar-foreground: rgb(10, 10, 10);
-  --sidebar-primary: rgb(23, 23, 23);
-  --sidebar-primary-foreground: rgb(250, 250, 250);
-  --sidebar-accent: rgb(245, 245, 245);
-  --sidebar-accent-foreground: rgb(23, 23, 23);
-  --sidebar-border: rgb(229, 229, 229);
-  --sidebar-ring: rgb(161, 161, 161);
-  --font-sans: Geist, sans-serif;
-  --font-serif: Geist Mono, monospace;
-  --font-mono: Geist Mono, monospace;
+
+  --border: rgb(38, 42, 49);               /* #262a31 */
+  --input: rgb(42, 47, 55);                /* #2a2f37 */
+  --ring: rgb(58, 64, 74);                 /* #3a404a */
+
+  --chart-1: rgb(128, 132, 140);
+  --chart-2: rgb(112, 116, 124);
+  --chart-3: rgb(96, 100, 108);
+  --chart-4: rgb(80, 84, 92);
+  --chart-5: rgb(64, 68, 76);
+
+  --sidebar: rgb(18, 20, 23);
+  --sidebar-foreground: rgb(214, 217, 223);
+  --sidebar-primary: rgb(42, 47, 55);
+  --sidebar-primary-foreground: rgb(236, 236, 238);
+  --sidebar-accent: rgb(23, 26, 31);
+  --sidebar-accent-foreground: rgb(214, 217, 223);
+  --sidebar-border: rgb(38, 42, 49);
+  --sidebar-ring: rgb(58, 64, 74);
+
+  /* Fonts: JetBrains Mono globally */
+  --font-sans: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+  --font-serif: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+
   --radius: 0.75rem;
-  --shadow-2xs: 0px 1px 0px 0px hsl(0 0% 0% / 0);
-  --shadow-xs: 0px 1px 0px 0px hsl(0 0% 0% / 0);
-  --shadow-sm: rgba(0, 0, 0, 0) 0px 0px 0px 0px,
-    rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0.08) 0px 0px 0px 1px,
-    rgba(0, 0, 0, 0.04) 0px 2px 2px 0px,
-    rgb(250, 250, 250) 0px 0px 0px 1px box-sizing;
-  --shadow: 0 0 0 1px rgba(0, 0, 0, 0.08), 0px 1px 1px rgba(0, 0, 0, 0.02),
-    0px 8px 16px -4px rgba(0, 0, 0, 0.04),
-    0px 24px 32px -8px rgba(0, 0, 0, 0.06);
-  --shadow-md: 0px 1px 0px 0px hsl(0 0% 0% / 0),
-    0px 2px 4px -1px hsl(0 0% 0% / 0);
-  --shadow-lg: 0px 1px 0px 0px hsl(0 0% 0% / 0),
-    0px 4px 6px -1px hsl(0 0% 0% / 0);
-  --shadow-xl: 0px 1px 0px 0px hsl(0 0% 0% / 0),
-    0px 8px 10px -1px hsl(0 0% 0% / 0);
-  --shadow-2xl: 0px 1px 0px 0px hsl(0 0% 0% / 0);
+
+  /* Subtle shadows tuned for dark UI */
+  --shadow-2xs: 0 1px 0 rgba(255,255,255,0.03) inset;
+  --shadow-xs: 0 1px 0 rgba(255,255,255,0.03) inset;
+  --shadow-sm: 0 0 0 1px rgba(255,255,255,0.04), 0 8px 16px -8px rgba(0,0,0,0.6);
+  --shadow:    0 0 0 1px rgba(255,255,255,0.05), 0 24px 32px -12px rgba(0,0,0,0.55);
+  --shadow-md: 0 0 0 1px rgba(255,255,255,0.05);
+  --shadow-lg: 0 0 0 1px rgba(255,255,255,0.06);
+  --shadow-xl: 0 0 0 1px rgba(255,255,255,0.07);
+  --shadow-2xl: 0 0 0 1px rgba(255,255,255,0.08);
+
   --tracking-normal: 0em;
   --spacing: 0.25rem;
-}
-
-.dark {
-  --background: rgb(10, 10, 10);
-  --foreground: rgb(250, 250, 250);
-  --card: rgb(25, 25, 25);
-  --card-foreground: rgb(250, 250, 250);
-  --popover: rgb(38, 38, 38);
-  --popover-foreground: rgb(250, 250, 250);
-  --primary: rgb(115, 115, 115);
-  --primary-foreground: rgb(250, 250, 250);
-  --secondary: rgb(38, 38, 38);
-  --secondary-foreground: rgb(250, 250, 250);
-  --muted: rgb(38, 38, 38);
-  --muted-foreground: rgb(161, 161, 161);
-  --accent: rgb(64, 64, 64);
-  --accent-foreground: rgb(250, 250, 250);
-  --destructive: rgb(255, 100, 103);
-  --destructive-foreground: rgb(38, 38, 38);
-  --border: rgb(56, 56, 56);
-  --input: rgb(82, 82, 82);
-  --ring: rgb(115, 115, 115);
-  --chart-1: rgb(115, 115, 115);
-  --chart-2: rgb(115, 115, 115);
-  --chart-3: rgb(115, 115, 115);
-  --chart-4: rgb(115, 115, 115);
-  --chart-5: rgb(115, 115, 115);
-  --sidebar: rgb(23, 23, 23);
-  --sidebar-foreground: rgb(250, 250, 250);
-  --sidebar-primary: rgb(250, 250, 250);
-  --sidebar-primary-foreground: rgb(23, 23, 23);
-  --sidebar-accent: rgb(38, 38, 38);
-  --sidebar-accent-foreground: rgb(250, 250, 250);
-  --sidebar-border: rgb(255, 255, 255);
-  --sidebar-ring: rgb(82, 82, 82);
-  --font-sans: Geist, sans-serif;
-  --font-serif: Geist Mono, monospace;
-  --font-mono: Geist Mono, monospace;
-  --radius: 0.75rem;
-  --shadow-2xs: 0px 1px 0px 0px hsl(0 0% 0% / 0);
-  --shadow-xs: 0px 1px 0px 0px hsl(0 0% 0% / 0);
-  --shadow-sm: 0px 1px 0px 0px hsl(0 0% 0% / 0),
-    0px 1px 2px -1px hsl(0 0% 0% / 0);
-  --shadow: 0px 1px 0px 0px hsl(0 0% 0% / 0), 0px 1px 2px -1px hsl(0 0% 0% / 0);
-  --shadow-md: 0px 1px 0px 0px hsl(0 0% 0% / 0),
-    0px 2px 4px -1px hsl(0 0% 0% / 0);
-  --shadow-lg: 0px 1px 0px 0px hsl(0 0% 0% / 0),
-    0px 4px 6px -1px hsl(0 0% 0% / 0);
-  --shadow-xl: 0px 1px 0px 0px hsl(0 0% 0% / 0),
-    0px 8px 10px -1px hsl(0 0% 0% / 0);
-  --shadow-2xl: 0px 1px 0px 0px hsl(0 0% 0% / 0);
 }
 
 @theme inline {
@@ -165,10 +121,11 @@
 }
 
 @layer base {
-  * {
-    @apply border-border outline-ring/50;
-  }
-  body {
-    @apply bg-background text-foreground;
-  }
+  * { @apply border-border outline-ring/50; }
+  body { @apply bg-background text-foreground font-mono antialiased; }
 }
+
+/* Optional: slim, unobtrusive scrollbars on dark bg */
+*::-webkit-scrollbar { width: 10px; height: 10px; }
+*::-webkit-scrollbar-thumb { background: color-mix(in oklab, var(--border), black 10%); border-radius: 999px; }
+*::-webkit-scrollbar-track { background: transparent; }
