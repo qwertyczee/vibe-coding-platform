@@ -1,7 +1,7 @@
 export enum Models {
   OpenAIGPT5 = 'openai/gpt-5',
   OpenAIGPT5Mini = 'openai/gpt-5-mini',
-  XaiGrok4Fast = 'xai/grok-4-fast',
+  XaiGrok4Fast = 'x-ai/grok-4-fast',
   ZaiGLM46 = 'z-ai/glm-4.6',
   AnthropicClaude45Sonnet = 'anthropic/claude-sonnet-4.5',
   GoogleGeminiFlash = 'google/gemini-2.5-flash',
