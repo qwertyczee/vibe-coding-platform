@@ -1,25 +1,21 @@
 export enum Models {
-  AmazonNovaPro = 'amazon/nova-pro',
-  AnthropicClaude4Sonnet = 'anthropic/claude-4-sonnet',
-  AnthropicClaude45Sonnet = 'anthropic/claude-sonnet-4.5',
-  GoogleGeminiFlash = 'google/gemini-2.5-flash',
-  MoonshotKimiK2 = 'moonshotai/kimi-k2',
   OpenAIGPT5 = 'openai/gpt-5',
   OpenAIGPT5Mini = 'openai/gpt-5-mini',
-  XaiGrok3Fast = 'xai/grok-3-fast',
+  XaiGrok4Fast = 'xai/grok-4-fast',
+  ZaiGLM46 = 'z-ai/glm-4.6',
+  AnthropicClaude45Sonnet = 'anthropic/claude-sonnet-4.5',
+  GoogleGeminiFlash = 'google/gemini-2.5-flash',
 }
 
-export const DEFAULT_MODEL = Models.AnthropicClaude45Sonnet
+export const DEFAULT_MODEL = Models.OpenAIGPT5
 
 export const SUPPORTED_MODELS: string[] = [
-  Models.AmazonNovaPro,
-  Models.AnthropicClaude4Sonnet,
-  Models.AnthropicClaude45Sonnet,
-  Models.GoogleGeminiFlash,
-  Models.MoonshotKimiK2,
   Models.OpenAIGPT5,
   Models.OpenAIGPT5Mini,
-  Models.XaiGrok3Fast,
+  Models.XaiGrok4Fast,
+  Models.ZaiGLM46,
+  Models.AnthropicClaude45Sonnet,
+  Models.GoogleGeminiFlash,
 ]
 
 export const TEST_PROMPTS = [
