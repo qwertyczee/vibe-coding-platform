@@ -1,8 +1,7 @@
 import type { Components } from 'react-markdown';
-import { memo, useMemo, useCallback } from 'react';
+import { memo } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import rehypeRaw from 'rehype-raw';
 
 // Memoized component definitions to prevent recreation
 const LinkComponent = memo(({ children, href, ...props }: any) => (
@@ -71,6 +70,13 @@ const BlockquoteComponent = memo(({ children, ...props }: any) => (
     </blockquote>
 ));
 
+// Fallback component for unknown HTML tags
+const FallbackComponent = memo(({ children, ...props }: any) => (
+    <div {...props}>
+        {children}
+    </div>
+));
+
 // Static components object - created once and reused
 const STATIC_COMPONENTS: Components = {
     a: LinkComponent,
@@ -83,6 +89,43 @@ const STATIC_COMPONENTS: Components = {
     ol: OlComponent,
     p: PComponent,
     blockquote: BlockquoteComponent,
+    // Add common HTML elements that might appear in the markdown
+    div: FallbackComponent,
+    span: FallbackComponent,
+    strong: ({ children, ...props }: any) => <strong {...props}>{children}</strong>,
+    em: ({ children, ...props }: any) => <em {...props}>{children}</em>,
+    br: () => <br />,
+    hr: () => <hr />,
+    table: ({ children, ...props }: any) => (
+        <table className="border-collapse border border-border w-full" {...props}>
+            {children}
+        </table>
+    ),
+    thead: ({ children, ...props }: any) => (
+        <thead {...props}>
+            {children}
+        </thead>
+    ),
+    tbody: ({ children, ...props }: any) => (
+        <tbody {...props}>
+            {children}
+        </tbody>
+    ),
+    tr: ({ children, ...props }: any) => (
+        <tr className="border-b border-border" {...props}>
+            {children}
+        </tr>
+    ),
+    th: ({ children, ...props }: any) => (
+        <th className="border border-border px-2 py-1 text-left font-semibold" {...props}>
+            {children}
+        </th>
+    ),
+    td: ({ children, ...props }: any) => (
+        <td className="border border-border px-2 py-1" {...props}>
+            {children}
+        </td>
+    ),
 };
 
 export const MarkdownRenderer = memo(function MarkdownRenderer({
@@ -90,17 +133,13 @@ export const MarkdownRenderer = memo(function MarkdownRenderer({
 }: {
     content: string;
 }) {
-    // Memoize the content to prevent unnecessary re-renders
-    const memoizedContent = useMemo(() => content, [content]);
-
     // Use static components to avoid recreation
     return (
         <ReactMarkdown
             remarkPlugins={[remarkGfm]}
-            rehypePlugins={[rehypeRaw]}
             components={STATIC_COMPONENTS}
         >
-            {memoizedContent}
+            {content}
         </ReactMarkdown>
     );
 });
