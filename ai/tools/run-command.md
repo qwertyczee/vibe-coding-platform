@@ -18,18 +18,18 @@ Use Run Command when:
 ## Sequencing Rules
 
 - If two commands depend on each other, **set `wait: true` on the first** to ensure it finishes before starting the second
-  - ✅ Good: Run `pnpm install` with `wait: true` → then run `pnpm dev`
-  - ❌ Bad: Run both with `wait: false` and expect them to be sequential
+    - ✅ Good: Run `pnpm install` with `wait: true` → then run `pnpm dev`
+    - ❌ Bad: Run both with `wait: false` and expect them to be sequential
 - Do **not** issue multiple sequential commands in one call
-  - ❌ `cd src && node index.js`
-  - ✅ `node src/index.js`
+    - ❌ `cd src && node index.js`
+    - ✅ `node src/index.js`
 - Do **not** assume directory state is preserved — use full relative paths
 
 ## Command Format
 
 - Separate the base command from its arguments
-  - ✅ `{ command: "pnpm", args: ["install", "--verbose"], wait: true }`
-  - ❌ `{ command: "pnpm install --verbose" }`
+    - ✅ `{ command: "pnpm", args: ["install", "--verbose"], wait: true }`
+    - ❌ `{ command: "pnpm install --verbose" }`
 - Avoid shell syntax like pipes, redirections, or `&&`. If unavoidable, ensure it works in a stateless, single-session execution
 
 ## When to Set `wait` to True

@@ -1,0 +1,19 @@
+{
+    "semi": true,
+    "trailingComma": "es5",
+    "singleQuote": true,
+    "printWidth": 80,
+    "tabWidth": 4,
+    "useTabs": false,
+    "bracketSpacing": true,
+    "arrowParens": "avoid",
+    "plugins": ["prettier-plugin-tailwindcss"],
+    "overrides": [
+        {
+            "files": "*.{json,md}",
+            "options": {
+                "tabWidth": 4
+            }
+        }
+    ]
+}

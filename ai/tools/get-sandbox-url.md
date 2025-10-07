@@ -14,9 +14,9 @@ Use Get Sandbox URL when:
 ## Critical Requirements
 
 - The port must have been **explicitly exposed** in the `Create Sandbox` step
-  - Example: `ports: [3000]`
+    - Example: `ports: [3000]`
 - The command serving on that port must be actively running
-  - Use `Run Command` followed by `Wait Command` (if needed) to start the server
+    - Use `Run Command` followed by `Wait Command` (if needed) to start the server
 
 ## Best Practices
 
