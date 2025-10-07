@@ -5,8 +5,6 @@ import type { OpenAIResponsesProviderOptions } from '@ai-sdk/openai'
 import type { LanguageModelV2 } from '@ai-sdk/provider'
 
 export async function getAvailableModels() {
-  // OpenRouter doesn't have a built-in getAvailableModels method like gateway
-  // We'll return the supported models from our constants
   return SUPPORTED_MODELS.map((modelId: string) => ({
     id: modelId,
     name: modelId,

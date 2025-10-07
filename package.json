@@ -10,7 +10,6 @@
     "type-check": "tsc --noEmit"
   },
   "dependencies": {
-    "@ai-sdk/gateway": "1.0.32",
     "@ai-sdk/openai": "2.0.42",
     "@ai-sdk/provider": "^2.0.0",
     "@ai-sdk/react": "2.0.59",
