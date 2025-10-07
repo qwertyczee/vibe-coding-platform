@@ -8,7 +8,7 @@ import {
 } from 'ai'
 import { DEFAULT_MODEL } from '@/ai/constants'
 import { NextResponse } from 'next/server'
-import { getAvailableModels, getModelOptions } from '@/ai/gateway'
+import { getAvailableModels, getModelOptions } from '@/ai/openrouter'
 import { checkBotId } from 'botid/server'
 import { tools } from '@/ai/tools'
 import prompt from './prompt.md'

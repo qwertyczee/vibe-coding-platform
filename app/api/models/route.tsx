@@ -1,5 +1,5 @@
 import { SUPPORTED_MODELS } from '@/ai/constants'
-import { getAvailableModels } from '@/ai/gateway'
+import { getAvailableModels } from '@/ai/openrouter'
 import { NextResponse } from 'next/server'
 
 export async function GET() {

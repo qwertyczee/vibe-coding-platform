@@ -1,5 +1,5 @@
 import { streamObject, type ModelMessage } from 'ai'
-import { getModelOptions } from '@/ai/gateway'
+import { getModelOptions } from '@/ai/openrouter'
 import { Deferred } from '@/lib/deferred'
 import z from 'zod/v3'
 
