@@ -12,10 +12,12 @@ interface SandboxStore {
   chatStatus: ChatStatus
   clearGeneratedFiles: () => void
   commands: Command[]
+  currentView: 'preview' | 'code'
   generatedFiles: Set<string>
   paths: string[]
   sandboxId?: string
   setChatStatus: (status: ChatStatus) => void
+  setCurrentView: (view: 'preview' | 'code') => void
   setSandboxId: (id: string) => void
   setStatus: (status: 'running' | 'stopped') => void
   setUrl: (url: string, uuid: string) => void
@@ -68,8 +70,10 @@ export const useSandboxStore = create<SandboxStore>()((set) => ({
   chatStatus: 'ready',
   clearGeneratedFiles: () => set(() => ({ generatedFiles: new Set<string>() })),
   commands: [],
+  currentView: 'code',
   generatedFiles: new Set<string>(),
   paths: [],
+  setCurrentView: (view) => set(() => ({ currentView: view })),
   setChatStatus: (status) =>
     set((state) =>
       state.chatStatus === status ? state : { chatStatus: status }
@@ -100,7 +104,9 @@ export const useSandboxStore = create<SandboxStore>()((set) => ({
 // Selectors for optimized state access
 export const useCommands = () => useSandboxStore((state) => state.commands)
 export const useChatStatus = () => useSandboxStore((state) => state.chatStatus)
+export const useCurrentView = () => useSandboxStore((state) => state.currentView)
 export const useSetChatStatus = () => useSandboxStore((state) => state.setChatStatus)
+export const useSetCurrentView = () => useSandboxStore((state) => state.setCurrentView)
 export const useSandboxId = () => useSandboxStore((state) => state.sandboxId)
 export const useGeneratedFiles = () => useSandboxStore((state) => state.generatedFiles)
 export const usePaths = () => useSandboxStore((state) => state.paths)
