@@ -6,6 +6,7 @@ import {
     useCallback,
     useContext,
     useEffect,
+    useMemo,
     useRef,
     useTransition,
 } from 'react';
@@ -41,12 +42,15 @@ export function ErrorMonitor({ children, debounceTimeMs = 10000 }: Props) {
         }
     }, [setScheduled]);
 
-    const status =
-        chatStatus !== 'ready' || fixErrors === false
-            ? 'disabled'
-            : pending || scheduled
-              ? 'pending'
-              : 'ready';
+    const status = useMemo(
+        () =>
+            chatStatus !== 'ready' || fixErrors === false
+                ? 'disabled'
+                : pending || scheduled
+                  ? 'pending'
+                  : 'ready',
+        [chatStatus, fixErrors, pending, scheduled]
+    );
 
     const getErrorKey = (error: Line) => {
         return `${error.command}-${error.args.join(' ')}-${error.data.slice(

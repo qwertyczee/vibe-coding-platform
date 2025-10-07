@@ -8,8 +8,9 @@ import {
 import { ReasoningEffort } from './reasoning-effort';
 import { ModelSelector } from './model-selector';
 import { SlidersVerticalIcon } from 'lucide-react';
+import { memo } from 'react';
 
-export function Settings() {
+export const Settings = memo(function Settings() {
     return (
         <Popover>
             <PopoverTrigger asChild>
@@ -31,4 +32,4 @@ export function Settings() {
             </PopoverContent>
         </Popover>
     );
-}
+});

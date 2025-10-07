@@ -1,7 +1,9 @@
 'use client';
 
-import { PanelGroup, Panel, PanelResizeHandle } from 'react-resizable-panels';
+import { Panel, PanelResizeHandle } from 'react-resizable-panels';
 import { HORIZONTAL_COOKIE, VERTICAL_COOKIE } from './sizing';
+import { useCallback } from 'react';
+import { PanelGroupWrapper } from './panel-group-wrapper';
 
 interface HProps {
     left: React.ReactNode;
@@ -10,15 +12,15 @@ interface HProps {
 }
 
 export function Horizontal({ defaultLayout, left, right }: HProps) {
-    const onLayout = (sizes: number[]) => {
+    const onLayout = useCallback((sizes: number[]) => {
         document.cookie = `${HORIZONTAL_COOKIE}=${JSON.stringify(sizes)}`;
-    };
+    }, []);
     return (
-        <PanelGroup direction="horizontal" onLayout={onLayout}>
+        <PanelGroupWrapper direction="horizontal" onLayout={onLayout}>
             <Panel defaultSize={defaultLayout[0]}>{left}</Panel>
             <PanelResizeHandle className="w-2" />
             <Panel defaultSize={defaultLayout[1]}>{right}</Panel>
-        </PanelGroup>
+        </PanelGroupWrapper>
     );
 }
 
@@ -30,26 +32,26 @@ interface VProps {
 }
 
 export function Vertical({ defaultLayout, top, middle, bottom }: VProps) {
-    const onLayout = (sizes: number[]) => {
+    const onLayout = useCallback((sizes: number[]) => {
         document.cookie = `${VERTICAL_COOKIE}=${JSON.stringify(sizes)}`;
-    };
+    }, []);
     if (middle) {
         return (
-            <PanelGroup direction="vertical" onLayout={onLayout}>
+            <PanelGroupWrapper direction="vertical" onLayout={onLayout}>
                 <Panel defaultSize={defaultLayout[0]}>{top}</Panel>
                 <PanelResizeHandle className="h-2" />
                 <Panel defaultSize={defaultLayout[1]}>{middle}</Panel>
                 <PanelResizeHandle className="h-2" />
                 <Panel defaultSize={defaultLayout[2]}>{bottom}</Panel>
-            </PanelGroup>
+            </PanelGroupWrapper>
         );
     } else {
         return (
-            <PanelGroup direction="vertical" onLayout={onLayout}>
+            <PanelGroupWrapper direction="vertical" onLayout={onLayout}>
                 <Panel defaultSize={defaultLayout[0]}>{top}</Panel>
                 <PanelResizeHandle className="h-2" />
                 <Panel defaultSize={defaultLayout[1]}>{bottom}</Panel>
-            </PanelGroup>
+            </PanelGroupWrapper>
         );
     }
 }

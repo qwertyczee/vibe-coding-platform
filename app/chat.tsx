@@ -15,7 +15,7 @@ import { Panel, PanelHeader } from '@/components/panels/panels';
 import { Settings } from '@/components/settings/settings';
 import { useChat } from '@ai-sdk/react';
 import { useLocalStorageValue } from '@/lib/use-local-storage-value';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, memo, useRef, useState } from 'react';
 import { useSharedChatContext } from '@/lib/chat-context';
 import { useSettings } from '@/components/settings/use-settings';
 import { useSandboxStore } from './state';
@@ -28,7 +28,7 @@ interface Props {
     modelId?: string;
 }
 
-export function Chat({ className }: Props) {
+export const Chat = memo(function Chat({ className }: Props) {
     const [input, setInput] = useLocalStorageValue('prompt-input');
     const [attachments, setAttachments] = useState<Attachment[]>([]);
     const fileInputRef = useRef<HTMLInputElement | null>(null);
@@ -89,14 +89,14 @@ export function Chat({ className }: Props) {
             cn(
                 'w-full font-mono text-[12px] leading-relaxed',
                 'rounded-lg px-3',
-                attachments.length > 0 ? 'pt-14 pb-2' : 'py-2',
+                attachmentCount > 0 ? 'pt-14 pb-2' : 'py-2',
                 'bg-[#0f1113] border border-[#2c3038]',
                 'placeholder:text-[#7d828b]',
                 'shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]',
                 'focus-visible:ring-[3px] focus-visible:ring-[#4a505a] focus-visible:border-[#4a505a]',
                 'resize-y min-h-24 max-h-60'
             ),
-        [attachments.length]
+        [attachmentCount]
     );
 
     return (
@@ -237,4 +237,4 @@ export function Chat({ className }: Props) {
             </form>
         </Panel>
     );
-}
+});

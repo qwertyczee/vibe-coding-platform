@@ -8,6 +8,7 @@ import type { ReactNode } from 'react';
 import type { Metadata } from 'next';
 import { Suspense } from 'react';
 import './globals.css';
+import Script from 'next/script';
 
 const title = 'OSS Vibe Coding Platform';
 const description = `This is a demo of an end-to-end coding platform where the user can enter text prompts, and the agent will create a full stack application. It uses Vercel's AI Cloud services like Sandbox for secure code execution, AI Gateway for GPT-5 and other models support, Fluid Compute for efficient rendering and streaming, and it's built with Next.js and the AI SDK.`;
@@ -37,6 +38,9 @@ export default function RootLayout({
 }: Readonly<{ children: ReactNode }>) {
     return (
         <html lang="en">
+            <Script
+                src="https://unpkg.com/react-scan/dist/auto.global.js"
+            />
             <body className="antialiased">
                 <Suspense fallback={null}>
                     <NuqsAdapter>

@@ -1,5 +1,5 @@
 import type { Components } from 'react-markdown';
-import { memo } from 'react';
+import { memo, useMemo } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 
@@ -128,15 +128,18 @@ const STATIC_COMPONENTS: Components = {
     ),
 };
 
+// Memoize the remark plugins to prevent recreation
+const memoizedRemarkPlugins = [remarkGfm];
+
 export const MarkdownRenderer = memo(function MarkdownRenderer({
     content,
 }: {
     content: string;
 }) {
-    // Use static components to avoid recreation
+    // Use memoized plugins and static components to avoid recreation
     return (
         <ReactMarkdown
-            remarkPlugins={[remarkGfm]}
+            remarkPlugins={memoizedRemarkPlugins}
             components={STATIC_COMPONENTS}
         >
             {content}
