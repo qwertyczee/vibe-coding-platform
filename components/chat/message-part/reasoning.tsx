@@ -25,8 +25,7 @@ export const Reasoning = memo(function Reasoning({
     const reasoningInfo = useMemo(() => {
         const firstLine = text.split('\n')[0].replace(/\*\*/g, '');
         const hasMoreContent = text.includes('\n') || text.length > 80;
-        const wordCount = text.split(/\s+/).length;
-        return { firstLine, hasMoreContent, wordCount };
+        return { firstLine, hasMoreContent };
     }, [text]);
 
     const handleToggle = useCallback(() => {
@@ -67,11 +66,6 @@ export const Reasoning = memo(function Reasoning({
                         Reasoning
                     </span>
                     {isStreaming && <MessageSpinner />}
-                    {!isExpanded && (
-                        <span className="text-muted-foreground/70 text-xs">
-                            {reasoningInfo.wordCount} words
-                        </span>
-                    )}
                 </div>
                 {reasoningInfo.hasMoreContent && (
                     <div className="flex items-center gap-1">
