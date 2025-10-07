@@ -30,11 +30,21 @@ interface FileContentChunk {
     written: string[];
 }
 
+enum FileState {
+    NotStarted = 0,
+    Started = 1,
+    InProgress = 2,
+    Complete = 3,
+}
+
 export async function* getContents(
     params: Params
 ): AsyncGenerator<FileContentChunk> {
+    console.log('🔍 getContents started with paths:', params.paths);
     const generated: z.infer<typeof fileSchema>[] = [];
     const deferred = new Deferred<void>();
+    const fileStates = new Map<string, FileState>(); // Sleduje stav každého souboru
+    
     const result = streamObject({
         ...getModelOptions(params.modelId, { reasoningEffort: 'minimal' }),
         maxOutputTokens: 64000,
@@ -56,31 +66,63 @@ export async function* getContents(
         },
     });
 
+    console.log('🔄 Starting to process partialObjectStream');
+    
     for await (const items of result.partialObjectStream) {
         if (!Array.isArray(items?.files)) {
             continue;
         }
 
         const written = generated.map(file => file.path);
-        const paths = written.concat(
-            items.files
-                .slice(generated.length, items.files.length - 1)
-                .flatMap(f => (f?.path ? [f.path] : []))
-        );
-
-        const files = items.files
-            .slice(generated.length, items.files.length - 2)
+        const newFiles = items.files.slice(generated.length);
+        
+        // Kompletní soubory (všechny kromě posledního)
+        const completeFiles = newFiles
+            .slice(0, -1)
             .map(file => fileSchema.parse(file));
 
-        if (files.length > 0) {
-            yield { files, paths, written };
-            generated.push(...files);
-        } else {
-            yield { files: [], written, paths };
+        // Yield kompletní soubory
+        if (completeFiles.length > 0) {
+            const paths = written.concat(completeFiles.map(f => f.path));
+            console.log('✅ Yielding complete files:', completeFiles.map(f => f.path));
+            
+            // Označ je jako complete
+            completeFiles.forEach(f => fileStates.set(f.path, FileState.Complete));
+            
+            yield { files: completeFiles, paths, written };
+            generated.push(...completeFiles);
+        }
+        
+        // Soubor v procesu (poslední)
+        const inProgressFile = newFiles[newFiles.length - 1];
+        
+        if (inProgressFile?.path) {
+            const currentState = fileStates.get(inProgressFile.path) || FileState.NotStarted;
+            const paths = [...written, ...generated.map(f => f.path), inProgressFile.path];
+            
+            // START - první yield pro tento soubor
+            if (currentState === FileState.NotStarted) {
+                console.log('🚀 Yielding START for file:', inProgressFile.path);
+                yield { files: [], written: generated.map(f => f.path), paths };
+                fileStates.set(inProgressFile.path, FileState.Started);
+            }
+            // IN-PROGRESS - druhý yield JEN JEDNOU když má dostatek contentu
+            else if (currentState === FileState.Started && 
+                     inProgressFile.content && 
+                     inProgressFile.content.length > 100) {
+                console.log('⏳ Yielding IN-PROGRESS for file:', inProgressFile.path, 
+                    `(${inProgressFile.content.length} chars)`);
+                yield { files: [], written: generated.map(f => f.path), paths };
+                fileStates.set(inProgressFile.path, FileState.InProgress);
+            }
+            // Po InProgress už žádné další yieldy dokud není complete
         }
     }
 
+    console.log('🏁 Finished processing partialObjectStream, waiting for final result');
     const raceResult = await Promise.race([result.object, deferred.promise]);
+    console.log('🏆 Race result received, files count:', raceResult?.files?.length || 0);
+    
     if (!raceResult) {
         throw new Error(
             'Unexpected Error: Deferred was resolved before the result'
@@ -90,8 +132,12 @@ export async function* getContents(
     const written = generated.map(file => file.path);
     const files = raceResult.files.slice(generated.length);
     const paths = written.concat(files.map(file => file.path));
+    
     if (files.length > 0) {
+        console.log('🎯 Final yield of COMPLETE files:', files.map(f => f.path));
         yield { files, written, paths };
         generated.push(...files);
     }
+    
+    console.log('✨ getContents completed, total files generated:', generated.length);
 }
