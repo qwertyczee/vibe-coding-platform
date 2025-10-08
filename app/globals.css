@@ -1,106 +1,133 @@
 @import 'tailwindcss';
 @import 'tw-animate-css';
 
-/* --- Dark Grey Theme Tokens --- */
 :root {
-    --background: rgb(15, 17, 19); /* #0f1113 */
-    --foreground: rgb(226, 228, 232);
+    color-scheme: dark;
 
-    --card: rgb(18, 20, 23); /* #121417 */
-    --card-foreground: rgb(230, 230, 232);
+    --background: #04060a;
+    --foreground: #f3f6ff;
 
-    --popover: rgb(15, 17, 19);
-    --popover-foreground: rgb(230, 230, 232);
+    --surface-100: rgba(14, 17, 23, 0.92);
+    --surface-200: rgba(19, 24, 34, 0.92);
+    --surface-300: rgba(23, 30, 44, 0.88);
+    --surface-glass: rgba(9, 12, 18, 0.72);
 
-    --primary: rgb(42, 47, 55); /* #2a2f37 */
-    --primary-foreground: rgb(240, 240, 242);
+    --card: var(--surface-100);
+    --card-foreground: var(--foreground);
 
-    --secondary: rgb(26, 29, 33); /* #1a1d21 */
-    --secondary-foreground: rgb(185, 190, 199);
+    --popover: var(--surface-200);
+    --popover-foreground: var(--foreground);
 
-    --muted: rgb(23, 26, 31); /* #171a1f */
-    --muted-foreground: rgb(134, 140, 149);
+    --primary: #0c111d;
+    --primary-foreground: #f3f6ff;
 
-    --accent: rgb(28, 33, 39); /* #1c2127 */
-    --accent-foreground: rgb(211, 215, 222);
+    --secondary: #101524;
+    --secondary-foreground: #c4cbe0;
 
-    --destructive: rgb(229, 72, 77); /* #e5484d */
-    --destructive-foreground: rgb(245, 245, 245);
+    --muted: #151b2a;
+    --muted-foreground: #7f8ba8;
 
-    --border: rgb(44, 48, 56); /* refined border */
-    --input: rgb(42, 47, 55); /* #2a2f37 */
-    --ring: rgb(74, 80, 90); /* #4a505a */
+    --accent: #1d273d;
+    --accent-foreground: #f3f6ff;
 
-    --chart-1: rgb(128, 132, 140);
-    --chart-2: rgb(112, 116, 124);
-    --chart-3: rgb(96, 100, 108);
-    --chart-4: rgb(80, 84, 92);
-    --chart-5: rgb(64, 68, 76);
+    --destructive: #ff5e76;
+    --destructive-foreground: #0c0f17;
 
-    --sidebar: rgb(18, 20, 23);
-    --sidebar-foreground: rgb(214, 217, 223);
-    --sidebar-primary: rgb(42, 47, 55);
-    --sidebar-primary-foreground: rgb(236, 236, 238);
-    --sidebar-accent: rgb(23, 26, 31);
-    --sidebar-accent-foreground: rgb(214, 217, 223);
-    --sidebar-border: rgb(38, 42, 49);
-    --sidebar-ring: rgb(58, 64, 74);
+    --border: rgba(148, 163, 184, 0.18);
+    --border-strong: rgba(148, 163, 184, 0.45);
+    --input: rgba(148, 163, 184, 0.32);
+    --ring: rgba(75, 139, 255, 0.45);
 
-    /* Fonts: JetBrains Mono globally */
-    --font-sans:
-        'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Consolas,
-        'Liberation Mono', monospace;
-    --font-serif:
-        'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Consolas,
-        'Liberation Mono', monospace;
-    --font-mono:
-        'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Consolas,
-        'Liberation Mono', monospace;
+    --accent-primary: #4b8bff;
+    --accent-primary-glow: rgba(75, 139, 255, 0.4);
+    --accent-secondary: #9b6bff;
+    --accent-tertiary: #28d7ff;
 
-    --radius: 0.75rem;
+    --success: #3ad29f;
+    --warning: #ffb45b;
+    --danger: #ff5e76;
 
-    /* Subtle shadows tuned for dark UI */
+    --chart-1: #4b8bff;
+    --chart-2: #9b6bff;
+    --chart-3: #3ad29f;
+    --chart-4: #ffb45b;
+    --chart-5: #ff5e76;
+
+    --sidebar: rgba(10, 14, 21, 0.88);
+    --sidebar-foreground: var(--foreground);
+    --sidebar-primary: rgba(24, 31, 48, 0.96);
+    --sidebar-primary-foreground: var(--foreground);
+    --sidebar-accent: rgba(35, 44, 66, 0.72);
+    --sidebar-accent-foreground: var(--foreground);
+    --sidebar-border: rgba(148, 163, 184, 0.24);
+    --sidebar-ring: rgba(75, 139, 255, 0.45);
+
+    --font-sans: 'Inter var', 'Inter', ui-sans-serif, system-ui, -apple-system,
+        BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    --font-serif: 'Inter var', 'Inter', ui-sans-serif, system-ui, -apple-system,
+        BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    --font-mono: 'JetBrains Mono', 'SFMono-Regular', Menlo, Monaco,
+        'Source Code Pro', 'Courier New', monospace;
+
+    --radius: 1.5rem;
+
     --shadow-2xs: 0 1px 0 rgba(255, 255, 255, 0.03) inset;
-    --shadow-xs: 0 1px 0 rgba(255, 255, 255, 0.03) inset;
-    --shadow-sm:
-        0 0 0 1px rgba(255, 255, 255, 0.04), 0 8px 16px -8px rgba(0, 0, 0, 0.55);
-    --shadow:
-        0 0 0 1px rgba(255, 255, 255, 0.05),
-        0 24px 32px -12px rgba(0, 0, 0, 0.5);
-    --shadow-md: 0 0 0 1px rgba(255, 255, 255, 0.05);
-    --shadow-lg: 0 0 0 1px rgba(255, 255, 255, 0.06);
-    --shadow-xl: 0 0 0 1px rgba(255, 255, 255, 0.07);
-    --shadow-2xl: 0 0 0 1px rgba(255, 255, 255, 0.08);
+    --shadow-xs: 0 1px 0 rgba(255, 255, 255, 0.04) inset;
+    --shadow-sm: 0 0 0 1px rgba(255, 255, 255, 0.05),
+        0 12px 32px -18px rgba(18, 36, 64, 0.58);
+    --shadow: 0 0 0 1px rgba(255, 255, 255, 0.06),
+        0 34px 64px -30px rgba(8, 14, 34, 0.72);
+    --shadow-md: 0 0 0 1px rgba(255, 255, 255, 0.08),
+        0 42px 80px -32px rgba(9, 20, 46, 0.78);
+    --shadow-lg: 0 0 0 1px rgba(255, 255, 255, 0.1),
+        0 54px 120px -40px rgba(8, 16, 38, 0.86);
+    --shadow-xl: 0 0 0 1px rgba(75, 139, 255, 0.18),
+        0 0 120px -40px rgba(75, 139, 255, 0.4);
+    --shadow-2xl: 0 0 0 1px rgba(155, 107, 255, 0.18),
+        0 0 140px -48px rgba(155, 107, 255, 0.5);
 
-    --tracking-normal: 0em;
-    --spacing: 0.25rem;
+    --space-xs: clamp(0.5rem, 0.9vw, 0.75rem);
+    --space-sm: clamp(0.75rem, 1.2vw, 1.05rem);
+    --space-md: clamp(1rem, 1.6vw, 1.6rem);
+    --space-lg: clamp(1.5rem, 2vw, 2.4rem);
+    --space-xl: clamp(2.25rem, 4vw, 4rem);
 }
 
 @theme inline {
     --color-background: var(--background);
     --color-foreground: var(--foreground);
+
     --color-card: var(--card);
     --color-card-foreground: var(--card-foreground);
+
     --color-popover: var(--popover);
     --color-popover-foreground: var(--popover-foreground);
+
     --color-primary: var(--primary);
     --color-primary-foreground: var(--primary-foreground);
+
     --color-secondary: var(--secondary);
     --color-secondary-foreground: var(--secondary-foreground);
+
     --color-muted: var(--muted);
     --color-muted-foreground: var(--muted-foreground);
+
     --color-accent: var(--accent);
     --color-accent-foreground: var(--accent-foreground);
+
     --color-destructive: var(--destructive);
     --color-destructive-foreground: var(--destructive-foreground);
+
     --color-border: var(--border);
     --color-input: var(--input);
     --color-ring: var(--ring);
+
     --color-chart-1: var(--chart-1);
     --color-chart-2: var(--chart-2);
     --color-chart-3: var(--chart-3);
     --color-chart-4: var(--chart-4);
     --color-chart-5: var(--chart-5);
+
     --color-sidebar: var(--sidebar);
     --color-sidebar-foreground: var(--sidebar-foreground);
     --color-sidebar-primary: var(--sidebar-primary);
@@ -111,13 +138,13 @@
     --color-sidebar-ring: var(--sidebar-ring);
 
     --font-sans: var(--font-sans);
-    --font-mono: var(--font-mono);
     --font-serif: var(--font-serif);
+    --font-mono: var(--font-mono);
 
-    --radius-sm: calc(var(--radius) - 6px);
-    --radius-md: calc(var(--radius) - 2px);
+    --radius-sm: calc(var(--radius) - 10px);
+    --radius-md: calc(var(--radius) - 4px);
     --radius-lg: var(--radius);
-    --radius-xl: calc(var(--radius) + 4px);
+    --radius-xl: calc(var(--radius) + 6px);
 
     --shadow-2xs: var(--shadow-2xs);
     --shadow-xs: var(--shadow-xs);
@@ -131,22 +158,108 @@
 
 @layer base {
     * {
-        @apply border-border outline-ring/50;
+        @apply border-border outline-ring/20;
     }
+
     body {
-        @apply bg-background text-foreground font-mono text-[12.5px] antialiased;
+        @apply min-h-screen bg-background text-foreground font-sans text-[15px] antialiased;
+        letter-spacing: 0.01em;
+    }
+
+    body::before {
+        content: '';
+        position: fixed;
+        inset: -20vh;
+        pointer-events: none;
+        z-index: -2;
+        background: radial-gradient(
+                circle at top left,
+                rgba(75, 139, 255, 0.24),
+                transparent 45%
+            ),
+            radial-gradient(
+                circle at top right,
+                rgba(155, 107, 255, 0.18),
+                transparent 50%
+            ),
+            radial-gradient(
+                circle at 20% 80%,
+                rgba(58, 210, 159, 0.2),
+                transparent 52%
+            );
+        filter: blur(60px);
+    }
+
+    body::after {
+        content: '';
+        position: fixed;
+        inset: 0;
+        pointer-events: none;
+        z-index: -1;
+        opacity: 0.15;
+        background-image: radial-gradient(rgba(255, 255, 255, 0.18) 1px, transparent 1px);
+        background-size: 3px 3px;
+        mix-blend-mode: screen;
     }
 }
 
-/* Optional: slim, unobtrusive scrollbars on dark bg */
+@layer utilities {
+    .safe-px {
+        padding-left: max(var(--space-md), env(safe-area-inset-left));
+        padding-right: max(var(--space-md), env(safe-area-inset-right));
+    }
+
+    .safe-pb {
+        padding-bottom: calc(var(--space-md) + env(safe-area-inset-bottom));
+    }
+
+    .glass-sheen {
+        position: relative;
+        overflow: hidden;
+    }
+
+    .glass-sheen::before {
+        content: '';
+        position: absolute;
+        inset: -150%;
+        background: linear-gradient(
+            130deg,
+            transparent 35%,
+            rgba(255, 255, 255, 0.12) 50%,
+            transparent 65%
+        );
+        transform: translate3d(0, 0, 0);
+        animation: sheen 6s infinite;
+    }
+
+    @keyframes sheen {
+        0% {
+            transform: translate3d(-30%, -30%, 0) rotate(10deg);
+        }
+        50% {
+            transform: translate3d(30%, 30%, 0) rotate(10deg);
+        }
+        100% {
+            transform: translate3d(120%, 120%, 0) rotate(10deg);
+        }
+    }
+}
+
 *::-webkit-scrollbar {
     width: 10px;
     height: 10px;
 }
+
 *::-webkit-scrollbar-thumb {
-    background: color-mix(in oklab, var(--border), black 8%);
+    background: color-mix(in srgb, var(--border) 70%, transparent);
     border-radius: 999px;
+    border: 2px solid rgba(4, 6, 10, 0.6);
 }
+
+*::-webkit-scrollbar-thumb:hover {
+    background: color-mix(in srgb, var(--accent-primary) 35%, transparent);
+}
+
 *::-webkit-scrollbar-track {
     background: transparent;
 }

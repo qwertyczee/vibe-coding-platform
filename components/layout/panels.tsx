@@ -18,7 +18,9 @@ export function Horizontal({ defaultLayout, left, right }: HProps) {
     return (
         <PanelGroupWrapper direction="horizontal" onLayout={onLayout}>
             <Panel defaultSize={defaultLayout[0]}>{left}</Panel>
-            <PanelResizeHandle className="w-2" />
+            <PanelResizeHandle className="relative flex w-4 items-center justify-center px-1">
+                <span className="pointer-events-none h-12 w-[2px] rounded-full bg-white/10 transition-colors duration-200 data-[resize-handle-active=true]:bg-[rgba(75,139,255,0.65)]" />
+            </PanelResizeHandle>
             <Panel defaultSize={defaultLayout[1]}>{right}</Panel>
         </PanelGroupWrapper>
     );
@@ -39,9 +41,13 @@ export function Vertical({ defaultLayout, top, middle, bottom }: VProps) {
         return (
             <PanelGroupWrapper direction="vertical" onLayout={onLayout}>
                 <Panel defaultSize={defaultLayout[0]}>{top}</Panel>
-                <PanelResizeHandle className="h-2" />
+            <PanelResizeHandle className="relative flex h-3 w-full items-center justify-center py-1">
+                    <span className="pointer-events-none w-12 rounded-full bg-white/10 py-[1px] transition-colors duration-200 data-[resize-handle-active=true]:bg-[rgba(75,139,255,0.65)]" />
+                </PanelResizeHandle>
                 <Panel defaultSize={defaultLayout[1]}>{middle}</Panel>
-                <PanelResizeHandle className="h-2" />
+                <PanelResizeHandle className="relative flex h-3 w-full items-center justify-center py-1">
+                    <span className="pointer-events-none w-12 rounded-full bg-white/10 py-[1px] transition-colors duration-200 data-[resize-handle-active=true]:bg-[rgba(75,139,255,0.65)]" />
+                </PanelResizeHandle>
                 <Panel defaultSize={defaultLayout[2]}>{bottom}</Panel>
             </PanelGroupWrapper>
         );
@@ -49,7 +55,9 @@ export function Vertical({ defaultLayout, top, middle, bottom }: VProps) {
         return (
             <PanelGroupWrapper direction="vertical" onLayout={onLayout}>
                 <Panel defaultSize={defaultLayout[0]}>{top}</Panel>
-                <PanelResizeHandle className="h-2" />
+                <PanelResizeHandle className="relative flex h-3 w-full items-center justify-center py-1">
+                    <span className="pointer-events-none w-12 rounded-full bg-white/10 py-[1px] transition-colors duration-200 data-[resize-handle-active=true]:bg-[rgba(75,139,255,0.65)]" />
+                </PanelResizeHandle>
                 <Panel defaultSize={defaultLayout[1]}>{bottom}</Panel>
             </PanelGroupWrapper>
         );
