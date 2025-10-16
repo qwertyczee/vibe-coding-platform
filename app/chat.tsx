@@ -2,7 +2,17 @@
 
 import type { ChatUIMessage } from '@/components/chat/types';
 import { TEST_PROMPTS } from '@/ai/constants';
-import { ImageUpIcon, MessageCircleIcon, SendIcon } from 'lucide-react';
+import {
+    ChevronDownIcon,
+    DownloadIcon,
+    EditIcon,
+    ImageUpIcon,
+    MessageCircleIcon,
+    PlusIcon,
+    SendIcon,
+    Trash2Icon,
+    UploadCloudIcon,
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
     Conversation,
@@ -13,13 +23,32 @@ import { Textarea } from '@/components/ui/textarea';
 import { Message } from '@/components/chat/message';
 import { Panel, PanelHeader } from '@/components/panels/panels';
 import { Settings } from '@/components/settings/settings';
-import { useChat } from '@ai-sdk/react';
 import { useLocalStorageValue } from '@/lib/use-local-storage-value';
-import { useCallback, useEffect, useMemo, memo, useRef, useState } from 'react';
+import {
+    useCallback,
+    useEffect,
+    useMemo,
+    memo,
+    useRef,
+    useState,
+    type ChangeEvent,
+} from 'react';
 import { useSharedChatContext } from '@/lib/chat-context';
 import { useSettings } from '@/components/settings/use-settings';
 import { useSandboxStore } from './state';
 import { cn } from '@/lib/utils';
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuGroup,
+    DropdownMenuItem,
+    DropdownMenuLabel,
+    DropdownMenuSeparator,
+    DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { usePersistentChatSession } from '@/lib/use-persistent-chat-session';
+import type { ConversationRecord } from '@/lib/chat-storage';
+import { toast } from 'sonner';
 
 type Attachment = { file: File; url: string };
 
@@ -32,10 +61,25 @@ export const Chat = memo(function Chat({ className }: Props) {
     const [input, setInput] = useLocalStorageValue('prompt-input', '');
     const [attachments, setAttachments] = useState<Attachment[]>([]);
     const fileInputRef = useRef<HTMLInputElement | null>(null);
+    const importInputRef = useRef<HTMLInputElement | null>(null);
 
     const { chat } = useSharedChatContext();
     const { modelId, reasoningEffort } = useSettings();
-    const { messages, sendMessage, status } = useChat<ChatUIMessage>({ chat });
+    const {
+        messages,
+        sendMessage,
+        status,
+        conversations,
+        activeConversation,
+        selectConversation,
+        startNewConversation,
+        renameConversation,
+        deleteConversation,
+        exportConversation,
+        exportAll,
+        importFromPayloads,
+        isHydrating,
+    } = usePersistentChatSession({ chat, modelId, reasoningEffort });
     const stableMessages = useStableMessages(messages);
     const { setChatStatus } = useSandboxStore();
 
@@ -81,6 +125,118 @@ export const Chat = memo(function Chat({ className }: Props) {
 
     const attachmentCount = useMemo(() => attachments.length, [attachments]);
 
+    const handleSelectConversation = useCallback(
+        async (conversationId: string) => {
+            await selectConversation(conversationId);
+            setAttachments([]);
+            setInput('');
+        },
+        [selectConversation, setInput, setAttachments]
+    );
+
+    const handleStartNewConversation = useCallback(async () => {
+        await startNewConversation();
+        setAttachments([]);
+        setInput('');
+    }, [startNewConversation, setInput, setAttachments]);
+
+    const handleRenameConversation = useCallback(async () => {
+        if (!activeConversation) {
+            return;
+        }
+        const nextTitle = window.prompt(
+            'Rename conversation',
+            activeConversation.title ?? 'New chat'
+        );
+        if (nextTitle && nextTitle.trim().length > 0) {
+            await renameConversation(activeConversation.id, nextTitle.trim());
+            toast.success('Conversation renamed');
+        }
+    }, [activeConversation, renameConversation]);
+
+    const handleDeleteConversation = useCallback(async () => {
+        if (!activeConversation) {
+            return;
+        }
+        const confirmed = window.confirm(
+            'Delete this conversation? This action cannot be undone.'
+        );
+        if (confirmed) {
+            await deleteConversation(activeConversation.id);
+            toast.success('Conversation deleted');
+            setAttachments([]);
+            setInput('');
+        }
+    }, [activeConversation, deleteConversation, setAttachments, setInput]);
+
+    const handleExportConversation = useCallback(async () => {
+        if (!activeConversation) {
+            return;
+        }
+        const payload = await exportConversation(activeConversation.id);
+        if (!payload) {
+            toast.error('Unable to export conversation');
+            return;
+        }
+        const blob = new Blob([JSON.stringify(payload, null, 2)], {
+            type: 'application/json',
+        });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `${
+            activeConversation.title?.replace(/[^a-z0-9-]+/gi, '-').toLowerCase() ??
+            'conversation'
+        }.json`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+        toast.success('Conversation exported');
+    }, [activeConversation, exportConversation]);
+
+    const handleExportAll = useCallback(async () => {
+        const payloads = await exportAll();
+        if (payloads.length === 0) {
+            toast.info('No conversations to export');
+            return;
+        }
+        const blob = new Blob([JSON.stringify(payloads, null, 2)], {
+            type: 'application/json',
+        });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = 'conversations.json';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+        toast.success('All conversations exported');
+    }, [exportAll]);
+
+    const handleImportFiles = useCallback(
+        async (event: ChangeEvent<HTMLInputElement>) => {
+            const file = event.target.files?.[0];
+            if (!file) {
+                return;
+            }
+            try {
+                const text = await file.text();
+                const parsed = JSON.parse(text);
+                const payloads = Array.isArray(parsed) ? parsed : [parsed];
+                await importFromPayloads(payloads);
+                toast.success('Conversations imported');
+            } catch (error) {
+                console.error('Failed to import conversations', error);
+                toast.error('Import failed. Ensure the file is a valid export.');
+            } finally {
+                event.target.value = '';
+            }
+        },
+        [importFromPayloads]
+    );
+
     useEffect(() => {
         setChatStatus(status);
     }, [status, setChatStatus]);
@@ -102,21 +258,53 @@ export const Chat = memo(function Chat({ className }: Props) {
 
     // Memoize the test prompts to prevent re-creation on every render
     const testPrompts = useMemo(() => TEST_PROMPTS, []);
+    const statusLabel = isHydrating ? 'hydrating' : status;
+    const activeTitle = activeConversation?.title ?? 'New chat';
+
+    const shouldShowEmptyState = stableMessages.length === 0 && !isHydrating;
 
     return (
         <Panel className={className}>
+            <input
+                ref={importInputRef}
+                type="file"
+                accept="application/json"
+                className="hidden"
+                onChange={handleImportFiles}
+            />
             <PanelHeader>
-                <div className="text-muted-foreground flex items-center font-mono text-[11px] font-semibold tracking-wide uppercase">
-                    <MessageCircleIcon className="mr-2 h-3.5 w-3.5" />
-                    Chat
+                <div className="flex flex-1 items-center gap-2">
+                    <div className="text-muted-foreground flex items-center font-mono text-[11px] font-semibold tracking-wide uppercase">
+                        <MessageCircleIcon className="mr-2 h-3.5 w-3.5" />
+                        Chat
+                    </div>
+                    <ConversationSwitcher
+                        conversations={conversations}
+                        activeConversation={activeConversation}
+                        onSelect={handleSelectConversation}
+                        onCreate={handleStartNewConversation}
+                        onRename={handleRenameConversation}
+                        onDelete={handleDeleteConversation}
+                        onExport={handleExportConversation}
+                        onExportAll={handleExportAll}
+                        onImport={() => importInputRef.current?.click()}
+                        disabled={isHydrating}
+                        title={activeTitle}
+                    />
                 </div>
                 <div className="ml-auto font-mono text-[10px] opacity-60">
-                    [{status}]
+                    [{statusLabel}]
                 </div>
             </PanelHeader>
 
             {/* Messages Area */}
-            {stableMessages.length === 0 ? (
+            {isHydrating ? (
+                <div className="min-h-0 flex-1">
+                    <div className="text-muted-foreground flex h-full flex-col items-center justify-center gap-2 font-mono text-xs">
+                        <span className="animate-pulse">Loading conversation…</span>
+                    </div>
+                </div>
+            ) : shouldShowEmptyState ? (
                 <div className="min-h-0 flex-1">
                     <div className="text-muted-foreground flex h-full flex-col items-center justify-center font-mono text-xs">
                         <p className="mb-2 font-semibold">
@@ -180,7 +368,9 @@ export const Chat = memo(function Chat({ className }: Props) {
                             rows={4}
                             className={textareaClass}
                             disabled={
-                                status === 'streaming' || status === 'submitted'
+                                isHydrating ||
+                                status === 'streaming' ||
+                                status === 'submitted'
                             }
                             onChange={e => setInput(e.target.value)}
                             placeholder="What to vibe?"
@@ -207,6 +397,7 @@ export const Chat = memo(function Chat({ className }: Props) {
                             size="sm"
                             className="h-7 rounded-md px-2 text-[10.5px]"
                             onClick={handlePickImage}
+                            disabled={isHydrating}
                             title="Upload image"
                             aria-label="Upload image"
                         >
@@ -228,6 +419,7 @@ export const Chat = memo(function Chat({ className }: Props) {
                             size="sm"
                             className="bg-secondary border-border hover:bg-secondary/80 h-7 rounded-md border px-2 text-[10.5px] font-medium"
                             disabled={
+                                isHydrating ||
                                 status !== 'ready' ||
                                 (!input.trim() && attachmentCount === 0)
                             }
@@ -242,7 +434,6 @@ export const Chat = memo(function Chat({ className }: Props) {
         </Panel>
     );
 });
-
 
 function useStableMessages(messages: ChatUIMessage[]) {
     const previousMessagesRef = useRef<Map<string, ChatUIMessage>>(new Map());
@@ -267,6 +458,135 @@ function useStableMessages(messages: ChatUIMessage[]) {
 
         return stableList;
     }, [messages]);
+}
+
+interface ConversationSwitcherProps {
+    conversations: ConversationRecord[];
+    activeConversation?: ConversationRecord;
+    onSelect: (conversationId: string) => void | Promise<void>;
+    onCreate: () => void | Promise<void>;
+    onRename: () => void | Promise<void>;
+    onDelete: () => void | Promise<void>;
+    onExport: () => void | Promise<void>;
+    onExportAll: () => void | Promise<void>;
+    onImport: () => void;
+    disabled?: boolean;
+    title: string;
+}
+
+function ConversationSwitcher({
+    conversations,
+    activeConversation,
+    onSelect,
+    onCreate,
+    onRename,
+    onDelete,
+    onExport,
+    onExportAll,
+    onImport,
+    disabled,
+    title,
+}: ConversationSwitcherProps) {
+    return (
+        <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+                <Button
+                    variant="outline"
+                    size="sm"
+                    className="bg-background/80 border-border flex items-center gap-2 rounded-md px-2 text-[11px] font-medium"
+                    disabled={disabled}
+                >
+                    <span className="max-w-[140px] truncate text-left">{title}</span>
+                    <ChevronDownIcon className="h-3 w-3" />
+                </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="start" className="w-72">
+                <DropdownMenuLabel>Conversations</DropdownMenuLabel>
+                <DropdownMenuGroup>
+                    {conversations.length === 0 ? (
+                        <DropdownMenuItem disabled>No conversations yet</DropdownMenuItem>
+                    ) : (
+                        conversations.map(conversation => (
+                            <DropdownMenuItem
+                                key={conversation.id}
+                                onSelect={() => {
+                                    void onSelect(conversation.id);
+                                }}
+                                className="flex flex-col items-start gap-1"
+                            >
+                                <span
+                                    className={cn(
+                                        'text-xs font-semibold',
+                                        conversation.id === activeConversation?.id
+                                            ? 'text-primary'
+                                            : undefined
+                                    )}
+                                >
+                                    {conversation.title || 'New chat'}
+                                </span>
+                                <span className="text-muted-foreground block w-full truncate text-[10px]">
+                                    {conversation.lastMessagePreview || 'No messages yet'}
+                                </span>
+                            </DropdownMenuItem>
+                        ))
+                    )}
+                </DropdownMenuGroup>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                    onSelect={() => {
+                        void onCreate();
+                    }}
+                >
+                    <PlusIcon className="mr-2 h-3.5 w-3.5" />
+                    New conversation
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                    disabled={!activeConversation}
+                    onSelect={() => {
+                        void onRename();
+                    }}
+                >
+                    <EditIcon className="mr-2 h-3.5 w-3.5" />
+                    Rename conversation
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                    disabled={!activeConversation}
+                    onSelect={() => {
+                        void onDelete();
+                    }}
+                >
+                    <Trash2Icon className="mr-2 h-3.5 w-3.5" />
+                    Delete conversation
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                    disabled={!activeConversation}
+                    onSelect={() => {
+                        void onExport();
+                    }}
+                >
+                    <DownloadIcon className="mr-2 h-3.5 w-3.5" />
+                    Export conversation
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                    onSelect={() => {
+                        void onExportAll();
+                    }}
+                >
+                    <DownloadIcon className="mr-2 h-3.5 w-3.5" />
+                    Export all conversations
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                    onSelect={() => {
+                        onImport();
+                    }}
+                >
+                    <UploadCloudIcon className="mr-2 h-3.5 w-3.5" />
+                    Import conversations
+                </DropdownMenuItem>
+            </DropdownMenuContent>
+        </DropdownMenu>
+    );
 }
 
 function areMessagesEqual(previous: ChatUIMessage, next: ChatUIMessage): boolean {
