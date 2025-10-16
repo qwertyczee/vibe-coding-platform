@@ -39,7 +39,7 @@ export function getModelOptions(
         };
     }
 
-    if (modelId === Models.AnthropicClaude45Sonnet) {
+    if (modelId === Models.AnthropicClaude45Haiku) {
         return {
             model: openrouter(modelId),
             headers: {

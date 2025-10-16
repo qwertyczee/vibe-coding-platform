@@ -3,7 +3,7 @@ export enum Models {
     OpenAIGPT5Mini = 'openai/gpt-5-mini',
     XaiGrokCodeFast = 'x-ai/grok-code-fast-1',
     ZaiGLM46 = 'z-ai/glm-4.6',
-    AnthropicClaude45Sonnet = 'anthropic/claude-sonnet-4.5',
+    AnthropicClaude45Haiku = 'anthropic/claude-haiku-4.5',
     GoogleGeminiFlash = 'google/gemini-2.5-flash',
 }
 
@@ -14,7 +14,7 @@ export const SUPPORTED_MODELS: string[] = [
     Models.OpenAIGPT5Mini,
     Models.XaiGrokCodeFast,
     Models.ZaiGLM46,
-    Models.AnthropicClaude45Sonnet,
+    Models.AnthropicClaude45Haiku,
     Models.GoogleGeminiFlash,
 ];
 
