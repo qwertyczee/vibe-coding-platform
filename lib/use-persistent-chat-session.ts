@@ -146,7 +146,12 @@ export function usePersistentChatSession({
     }, []);
 
     useEffect(() => {
-        if (!activeConversationId || hydratingRef.current || isHydrating) {
+        if (
+            !activeConversationId ||
+            hydratingRef.current ||
+            isHydrating ||
+            status === 'streaming'
+        ) {
             return;
         }
 
@@ -156,17 +161,28 @@ export function usePersistentChatSession({
 
         persistTimeoutRef.current = window.setTimeout(async () => {
             persistTimeoutRef.current = null;
-            const record = await saveConversationSnapshot(activeConversationId, messages, {
-                modelId,
-                reasoningEffort,
-            });
+            const record = await saveConversationSnapshot(
+                activeConversationId,
+                messages,
+                {
+                    modelId,
+                    reasoningEffort,
+                }
+            );
             if (record) {
                 setConversations(current =>
                     current.map(item => (item.id === record.id ? record : item))
                 );
             }
         }, PERSIST_DEBOUNCE_MS);
-    }, [activeConversationId, messages, modelId, reasoningEffort, isHydrating]);
+    }, [
+        activeConversationId,
+        messages,
+        modelId,
+        reasoningEffort,
+        isHydrating,
+        status,
+    ]);
 
     const selectConversation = useCallback(async (conversationId: string) => {
         const conversation = await getConversation(conversationId);
