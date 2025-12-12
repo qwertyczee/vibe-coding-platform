@@ -4,6 +4,7 @@ import type { ChatUIMessage } from '@/components/chat/types';
 import { TEST_PROMPTS } from '@/ai/constants';
 import {
     ChevronDownIcon,
+    CheckIcon,
     DownloadIcon,
     EditIcon,
     ImageUpIcon,
@@ -13,6 +14,17 @@ import {
     Trash2Icon,
     UploadCloudIcon,
 } from 'lucide-react';
+
+import {
+    Command,
+    CommandDialog,
+    CommandEmpty,
+    CommandGroup,
+    CommandInput,
+    CommandItem,
+    CommandList,
+    CommandSeparator,
+} from '@/components/ui/command';
 import { Button } from '@/components/ui/button';
 import {
     Conversation,
@@ -37,15 +49,6 @@ import { useSharedChatContext } from '@/lib/chat-context';
 import { useSettings } from '@/components/settings/use-settings';
 import { useSandboxStore } from './state';
 import { cn } from '@/lib/utils';
-import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuGroup,
-    DropdownMenuItem,
-    DropdownMenuLabel,
-    DropdownMenuSeparator,
-    DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
 import { usePersistentChatSession } from '@/lib/use-persistent-chat-session';
 import type { ConversationRecord } from '@/lib/chat-storage';
 import { toast } from 'sonner';
@@ -274,11 +277,7 @@ export const Chat = memo(function Chat({ className }: Props) {
             />
             <PanelHeader>
                 <div className="flex flex-1 items-center gap-2">
-                    <div className="text-muted-foreground flex items-center font-mono text-[11px] font-semibold tracking-wide uppercase">
-                        <MessageCircleIcon className="mr-2 h-3.5 w-3.5" />
-                        Chat
-                    </div>
-                    <ConversationSwitcher
+                    <ConversationPicker
                         conversations={conversations}
                         activeConversation={activeConversation}
                         onSelect={handleSelectConversation}
@@ -290,6 +289,7 @@ export const Chat = memo(function Chat({ className }: Props) {
                         onImport={() => importInputRef.current?.click()}
                         disabled={isHydrating}
                         title={activeTitle}
+                        isCurrentConversationEmpty={shouldShowEmptyState}
                     />
                 </div>
                 <div className="ml-auto font-mono text-[10px] opacity-60">
@@ -472,9 +472,10 @@ interface ConversationSwitcherProps {
     onImport: () => void;
     disabled?: boolean;
     title: string;
+    isCurrentConversationEmpty: boolean;
 }
 
-function ConversationSwitcher({
+function ConversationPicker({
     conversations,
     activeConversation,
     onSelect,
@@ -486,106 +487,71 @@ function ConversationSwitcher({
     onImport,
     disabled,
     title,
+    isCurrentConversationEmpty,
 }: ConversationSwitcherProps) {
+    const [open, setOpen] = useState(false);
+
+    // Filter out duplicates based on ID just in case, though conversations should be unique by ID
+    const uniqueConversations = conversations;
+
     return (
-        <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-                <Button
-                    variant="outline"
-                    size="sm"
-                    className="bg-background/80 border-border flex items-center gap-2 rounded-md px-2 text-[11px] font-medium"
-                    disabled={disabled}
-                >
-                    <span className="max-w-[140px] truncate text-left">{title}</span>
-                    <ChevronDownIcon className="h-3 w-3" />
-                </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="start" className="w-72">
-                <DropdownMenuLabel>Conversations</DropdownMenuLabel>
-                <DropdownMenuGroup>
-                    {conversations.length === 0 ? (
-                        <DropdownMenuItem disabled>No conversations yet</DropdownMenuItem>
-                    ) : (
-                        conversations.map(conversation => (
-                            <DropdownMenuItem
+        <>
+            <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setOpen(true)}
+                className="flex items-center gap-2 px-2 font-mono text-[11px] font-semibold tracking-wide uppercase hover:bg-muted/50"
+                disabled={disabled}
+            >
+                <MessageCircleIcon className="h-3.5 w-3.5 text-muted-foreground" />
+                <span className="max-w-[140px] truncate text-muted-foreground">
+                    {title}
+                </span>
+                <ChevronDownIcon className="h-3 w-3 text-muted-foreground/50" />
+            </Button>
+            <CommandDialog open={open} onOpenChange={setOpen}>
+                <CommandInput placeholder="Search conversations..." />
+                <CommandList>
+                    <CommandEmpty>No conversations found.</CommandEmpty>
+                    {!isCurrentConversationEmpty && (
+                        <>
+                            <CommandGroup heading="Actions">
+                                <CommandItem
+                                    onSelect={() => {
+                                        onCreate();
+                                        setOpen(false);
+                                    }}
+                                >
+                                    <PlusIcon className="mr-2 h-3.5 w-3.5" />
+                                    New conversation
+                                </CommandItem>
+                            </CommandGroup>
+                            <CommandSeparator />
+                        </>
+                    )}
+                    <CommandGroup heading="Conversations">
+                        {conversations.map(conversation => (
+                            <CommandItem
                                 key={conversation.id}
+                                value={`${conversation.title || 'New chat'} ${conversation.id}`}
                                 onSelect={() => {
                                     void onSelect(conversation.id);
+                                    setOpen(false);
                                 }}
-                                className="flex flex-col items-start gap-1"
+                                className="gap-2"
                             >
-                                <span
-                                    className={cn(
-                                        'text-xs font-semibold',
-                                        conversation.id === activeConversation?.id
-                                            ? 'text-primary'
-                                            : undefined
-                                    )}
-                                >
+                                <span className="truncate flex-1">
                                     {conversation.title || 'New chat'}
                                 </span>
-                                <span className="text-muted-foreground block w-full truncate text-[10px]">
-                                    {conversation.lastMessagePreview || 'No messages yet'}
-                                </span>
-                            </DropdownMenuItem>
-                        ))
-                    )}
-                </DropdownMenuGroup>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem
-                    onSelect={() => {
-                        void onCreate();
-                    }}
-                >
-                    <PlusIcon className="mr-2 h-3.5 w-3.5" />
-                    New conversation
-                </DropdownMenuItem>
-                <DropdownMenuItem
-                    disabled={!activeConversation}
-                    onSelect={() => {
-                        void onRename();
-                    }}
-                >
-                    <EditIcon className="mr-2 h-3.5 w-3.5" />
-                    Rename conversation
-                </DropdownMenuItem>
-                <DropdownMenuItem
-                    disabled={!activeConversation}
-                    onSelect={() => {
-                        void onDelete();
-                    }}
-                >
-                    <Trash2Icon className="mr-2 h-3.5 w-3.5" />
-                    Delete conversation
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem
-                    disabled={!activeConversation}
-                    onSelect={() => {
-                        void onExport();
-                    }}
-                >
-                    <DownloadIcon className="mr-2 h-3.5 w-3.5" />
-                    Export conversation
-                </DropdownMenuItem>
-                <DropdownMenuItem
-                    onSelect={() => {
-                        void onExportAll();
-                    }}
-                >
-                    <DownloadIcon className="mr-2 h-3.5 w-3.5" />
-                    Export all conversations
-                </DropdownMenuItem>
-                <DropdownMenuItem
-                    onSelect={() => {
-                        onImport();
-                    }}
-                >
-                    <UploadCloudIcon className="mr-2 h-3.5 w-3.5" />
-                    Import conversations
-                </DropdownMenuItem>
-            </DropdownMenuContent>
-        </DropdownMenu>
+                                {conversation.id === activeConversation?.id && (
+                                    <CheckIcon className="ml-auto h-3.5 w-3.5 opacity-100" />
+                                )}
+                            </CommandItem>
+                        ))}
+                    </CommandGroup>
+                </CommandList>
+            </CommandDialog>
+        </>
     );
 }
 

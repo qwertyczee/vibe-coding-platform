@@ -161,10 +161,9 @@ export function usePersistentChatSession({
                 reasoningEffort,
             });
             if (record) {
-                setConversations(current => {
-                    const filtered = current.filter(item => item.id !== record.id);
-                    return [record, ...filtered];
-                });
+                setConversations(current =>
+                    current.map(item => (item.id === record.id ? record : item))
+                );
             }
         }, PERSIST_DEBOUNCE_MS);
     }, [activeConversationId, messages, modelId, reasoningEffort, isHydrating]);
@@ -175,10 +174,9 @@ export function usePersistentChatSession({
             return;
         }
         setActiveConversationId(conversationId);
-        setConversations(current => {
-            const filtered = current.filter(item => item.id !== conversationId);
-            return [conversation, ...filtered];
-        });
+        setConversations(current =>
+            current.map(item => (item.id === conversationId ? conversation : item))
+        );
     }, []);
 
     const startNewConversation = useCallback(async () => {
@@ -202,10 +200,9 @@ export function usePersistentChatSession({
         await renameConversationRecord(conversationId, title.trim());
         const updated = await getConversation(conversationId);
         if (updated) {
-            setConversations(current => {
-                const filtered = current.filter(item => item.id !== conversationId);
-                return [updated, ...filtered];
-            });
+            setConversations(current =>
+                current.map(item => (item.id === conversationId ? updated : item))
+            );
         }
     }, []);
 
