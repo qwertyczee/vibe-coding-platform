@@ -31,7 +31,8 @@ export default function Page() {
 
                             <TabsContent
                                 value="code"
-                                className="min-h-0 flex-1"
+                                className="min-h-0 flex-1 data-[state=inactive]:hidden"
+                                forceMount
                             >
                                 <Vertical
                                     defaultLayout={[75, 25]}
@@ -46,7 +47,8 @@ export default function Page() {
 
                             <TabsContent
                                 value="preview"
-                                className="min-h-0 flex-1"
+                                className="min-h-0 flex-1 data-[state=inactive]:hidden"
+                                forceMount
                             >
                                 <Preview className="flex-1 overflow-hidden" />
                             </TabsContent>
