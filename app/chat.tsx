@@ -13,6 +13,7 @@ import {
     SendIcon,
     Trash2Icon,
     UploadCloudIcon,
+    XIcon,
 } from 'lucide-react';
 
 import {
@@ -125,6 +126,10 @@ export const Chat = memo(function Chat({ className }: Props) {
         },
         []
     );
+
+    const removeAttachment = useCallback((index: number) => {
+        setAttachments(prev => prev.filter((_, i) => i !== index));
+    }, []);
 
     const attachmentCount = useMemo(() => attachments.length, [attachments]);
 
@@ -345,15 +350,27 @@ export const Chat = memo(function Chat({ className }: Props) {
                 <div className="p-2">
                     <div className="relative">
                         {/* Inline previews inside the textbox area (top-left) */}
+                        {/* Inline previews inside the textbox area (top-left) */}
                         {attachmentCount > 0 && (
-                            <div className="pointer-events-none absolute top-3 left-3 z-10 flex items-center gap-2">
+                            <div className="absolute top-3 left-3 z-10 flex items-center gap-2">
                                 {attachments.slice(0, 4).map((att, i) => (
-                                    <img
+                                    <div
                                         key={`${att.url}-${i}`}
-                                        src={att.url}
-                                        alt={`attachment-${i + 1}`}
-                                        className="h-10 w-10 rounded-md border border-[#2c3038] object-cover shadow-xs"
-                                    />
+                                        className="group relative h-10 w-10 overflow-hidden rounded-md border border-[#2c3038] shadow-xs"
+                                    >
+                                        <img
+                                            src={att.url}
+                                            alt={`attachment-${i + 1}`}
+                                            className="h-full w-full object-cover"
+                                        />
+                                        <button
+                                            type="button"
+                                            className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 transition-opacity group-hover:opacity-100"
+                                            onClick={() => removeAttachment(i)}
+                                        >
+                                            <XIcon className="h-4 w-4 text-white" />
+                                        </button>
+                                    </div>
                                 ))}
                                 {attachmentCount > 4 && (
                                     <div className="grid h-10 w-10 place-items-center rounded-md border border-[#2c3038] bg-[#171a1f] text-[10px] font-medium text-[#a3a9b3] shadow-xs">
