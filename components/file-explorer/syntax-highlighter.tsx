@@ -1,12 +1,12 @@
-import Prism from 'react-syntax-highlighter';
-import grayscale from 'react-syntax-highlighter/dist/esm/styles/hljs/grayscale';
+import { Prism as ReactSyntaxHighlighter } from 'react-syntax-highlighter';
+import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
 
 export function SyntaxHighlighter(props: { path: string; code: string }) {
     const lang = detectLanguageFromFilename(props.path);
     return (
-        <Prism
+        <ReactSyntaxHighlighter
             language={lang ?? 'javascript'}
-            style={grayscale}
+            style={vscDarkPlus}
             showLineNumbers
             showInlineLineNumbers
             customStyle={{
@@ -22,7 +22,7 @@ export function SyntaxHighlighter(props: { path: string; code: string }) {
             }}
         >
             {props.code}
-        </Prism>
+        </ReactSyntaxHighlighter>
     );
 }
 
