@@ -41,7 +41,7 @@ export default function RootLayout({
             <Script
                 src="https://unpkg.com/react-scan/dist/auto.global.js"
             />
-            <body className="antialiased">
+            <body className="antialiased" suppressHydrationWarning>
                 <Suspense fallback={null}>
                     <NuqsAdapter>
                         <ChatProvider>
