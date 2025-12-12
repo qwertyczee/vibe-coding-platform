@@ -133,8 +133,11 @@ const FileTreeNode = memo(function FileTreeNode({
         <div>
             <div
                 className={cn(
-                    `flex cursor-pointer items-center px-1 py-0.5 hover:bg-gray-100`,
-                    { 'bg-gray-200/80': selected?.path === node.path }
+                    'hover:bg-accent/40 hover:text-accent-foreground text-muted-foreground mx-1 flex cursor-pointer items-center rounded-sm px-1 py-1 text-xs transition-colors',
+                    {
+                        'bg-accent text-accent-foreground':
+                            selected?.path === node.path,
+                    }
                 )}
                 style={{ paddingLeft: `${depth * 16 + 8}px` }}
                 onClick={handleClick}
