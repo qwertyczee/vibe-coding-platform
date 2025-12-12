@@ -17,11 +17,22 @@ export const FileContent = memo(function FileContent({
         `/api/sandboxes/${sandboxId}/files?${searchParams.toString()}`,
         async (pathname: string, init: RequestInit) => {
             const response = await fetch(pathname, init);
+            if (!response.ok) {
+                throw new Error('Failed to load file');
+            }
             const text = await response.text();
             return text;
         },
         { refreshInterval: 1000 }
     );
+
+    if (content.error) {
+        return (
+            <div className="text-muted-foreground absolute flex h-full w-full items-center justify-center text-sm">
+                Unable to load file content
+            </div>
+        );
+    }
 
     if (content.isLoading || !content.data) {
         return (
