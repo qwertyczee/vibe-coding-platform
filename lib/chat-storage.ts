@@ -14,6 +14,10 @@ export interface ConversationRecord {
     reasoningEffort?: ReasoningEffort;
     lastMessagePreview?: string;
     isRenamed?: boolean;
+    sandboxId?: string;
+    filePaths?: string[];
+    // We store minimal log info to restore the console
+    commandLogs?: any[];
 }
 
 export type PersistedMessagePart = ChatUIMessage['parts'][number] & {
@@ -240,7 +244,8 @@ async function serializeMessage(
 export async function saveConversationSnapshot(
     conversationId: string,
     messages: ChatUIMessage[],
-    metadata: Partial<Pick<ConversationRecord, 'modelId' | 'reasoningEffort'>> = {}
+    metadata: Partial<Pick<ConversationRecord, 'modelId' | 'reasoningEffort'>> = {},
+    workspaceState: Partial<Pick<ConversationRecord, 'sandboxId' | 'filePaths' | 'commandLogs'>> = {}
 ): Promise<ConversationRecord | undefined> {
     const blobPromises: Array<Promise<AttachmentRecord | null>> = [];
     const serializationResults = await Promise.all(
@@ -319,6 +324,7 @@ export async function saveConversationSnapshot(
                 lastMessagePreview: preview,
                 ...(shouldUpdateTitle ? { title: updatedTitle } : {}),
                 ...metadata,
+                ...workspaceState,
             });
         }
     );

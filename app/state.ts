@@ -22,7 +22,7 @@ interface SandboxStore {
     sandboxId?: string;
     setChatStatus: (status: ChatStatus) => void;
     setCurrentView: (view: 'preview' | 'code') => void;
-    setSandboxId: (id: string) => void;
+    setSandboxId: (id: string | undefined) => void;
     setStatus: (status: 'running' | 'stopped') => void;
     setUrl: (url: string, uuid: string) => void;
     status?: 'running' | 'stopped';

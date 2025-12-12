@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { Chat, UseChatHelpers } from '@ai-sdk/react';
 import { useChat } from '@ai-sdk/react';
 import type { ChatUIMessage } from '@/components/chat/types';
+import { useSandboxStore } from '@/app/state';
 import {
     createConversation,
     deleteConversation as deleteConversationRecord,
@@ -88,6 +89,15 @@ export function usePersistentChatSession({
         addToolResult,
     } = useChat<ChatUIMessage>({ chat });
 
+    const {
+        sandboxId,
+        paths,
+        commands,
+        setSandboxId,
+        addPaths,
+        upsertCommand,
+    } = useSandboxStore();
+
     const [conversations, setConversations] = useState<ConversationRecord[]>([]);
     const [activeConversationId, setActiveConversationId] = useState<string | null>(null);
     const [isHydrating, setIsHydrating] = useState(true);
@@ -115,14 +125,34 @@ export function usePersistentChatSession({
             hydratingRef.current = true;
             setIsHydrating(true);
             releaseAttachmentUrls();
+
+            const conversation = await getConversation(conversationId);
             const { messages: persistedMessages } = await getConversationMessages(
                 conversationId
             );
+
+            // Restore Workspace State
+            if (conversation?.sandboxId) {
+                setSandboxId(conversation.sandboxId);
+                // setSandboxId resets paths and commands, so we restore them after
+                if (conversation.filePaths?.length) {
+                    addPaths(conversation.filePaths);
+                }
+                if (conversation.commandLogs?.length) {
+                    conversation.commandLogs.forEach((cmd: any) => {
+                        upsertCommand(cmd);
+                    });
+                }
+            } else {
+                // Clear sandbox if this chat doesn't have one
+                setSandboxId(undefined);
+            }
+
             setMessages(persistedMessages);
             setIsHydrating(false);
             hydratingRef.current = false;
         },
-        [setMessages]
+        [setMessages, setSandboxId, addPaths, upsertCommand]
     );
 
     useEffect(() => {
@@ -167,6 +197,11 @@ export function usePersistentChatSession({
                 {
                     modelId,
                     reasoningEffort,
+                },
+                {
+                    sandboxId,
+                    filePaths: paths,
+                    commandLogs: commands,
                 }
             );
             if (record) {
@@ -182,6 +217,9 @@ export function usePersistentChatSession({
         reasoningEffort,
         isHydrating,
         status,
+        sandboxId,
+        paths,
+        commands,
     ]);
 
     const selectConversation = useCallback(async (conversationId: string) => {
@@ -189,6 +227,7 @@ export function usePersistentChatSession({
         if (!conversation) {
             return;
         }
+        
         setActiveConversationId(conversationId);
         setConversations(current =>
             current.map(item => (item.id === conversationId ? conversation : item))
@@ -197,20 +236,33 @@ export function usePersistentChatSession({
 
     const startNewConversation = useCallback(async () => {
         if (activeConversationId) {
-            await saveConversationSnapshot(activeConversationId, messages, {
-                modelId,
-                reasoningEffort,
-            });
+            await saveConversationSnapshot(
+                activeConversationId, 
+                messages, 
+                {
+                    modelId,
+                    reasoningEffort,
+                },
+                {
+                    sandboxId,
+                    filePaths: paths,
+                    commandLogs: commands,
+                }
+            );
         }
 
         const newConversation = await createConversation(inferConversationTitle([]), {
             modelId,
             reasoningEffort,
         });
+
+        // Reset workspace for new conversation
+        setSandboxId(undefined);
+
         setConversations(current => [newConversation, ...current]);
         setActiveConversationId(newConversation.id);
         setMessages([]);
-    }, [activeConversationId, messages, modelId, reasoningEffort, setMessages]);
+    }, [activeConversationId, messages, modelId, reasoningEffort, setMessages, sandboxId, paths, commands, setSandboxId]);
 
     const renameConversation = useCallback(async (conversationId: string, title: string) => {
         await renameConversationRecord(conversationId, title.trim());
@@ -235,9 +287,10 @@ export function usePersistentChatSession({
                 setConversations([created]);
                 setActiveConversationId(created.id);
                 setMessages([]);
+                setSandboxId(undefined);
             }
         }
-    }, [activeConversationId, setMessages]);
+    }, [activeConversationId, setMessages, setSandboxId]);
 
     const exportConversation = useCallback(
         async (conversationId: string) => exportConversationPayload(conversationId),
